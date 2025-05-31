@@ -2,10 +2,10 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SaludoController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [SaludoController::class, 'index']); // Ahora esta es la pantalla principal
+Route::get('/saludo', [SaludoController::class, 'index']); // Puedes mantener esta si quieres
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -17,4 +17,5 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
+
