@@ -10,12 +10,23 @@ class Cliente extends Model
 {
     use HasFactory;
 
+    // 1. Nombre de la tabla (Laravel lo infiere, pero no está de más)
     protected $table = 'clientes';
-    protected $primaryKey = 'id_cliente';
-    public $incrementing = true;    // id_cliente será auto‐incremental
-    protected $keyType = 'int';
-    public $timestamps = true;      // espera campos created_at y updated_at
 
+    // 2. Clave primaria personalizada
+    protected $primaryKey = 'id_cliente';
+
+    // 3. increments('id_cliente') hace que la PK sea auto-incremental
+    public $incrementing = true;
+
+    // 4. increments() genera un entero en la BD, así que el tipo es 'int'
+    protected $keyType = 'int';
+
+    // 5. Laravel manejará created_at y updated_at
+    public $timestamps = true;
+
+    // 6. Solo incluyo los campos que quiero asignar masivamente:
+    //    no pongo 'id_cliente' aquí porque la BD lo genera sola.
     protected $fillable = [
         'nombre',
         'ruc',
@@ -23,11 +34,13 @@ class Cliente extends Model
         'telefono',
     ];
 
+    /**
+     * Relación: un cliente tiene muchas plantas.
+     */
     public function plantas(): HasMany
     {
-        // En la tabla "plantas", la columna foreign key se llama "cliente_id"
-        // y aquí la PK de Cliente es "id_cliente" según la migración.
-        return $this->hasMany(Planta::class, 'cliente_id', 'id_cliente');
+        // En la migración definimos `id_cliente` como FK en plantas.
+        return $this->hasMany(Planta::class, 'id_cliente', 'id_cliente');
     }
 }
 

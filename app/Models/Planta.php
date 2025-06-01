@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,27 +13,31 @@ class Planta extends Model
 
     protected $table = 'plantas';
     protected $primaryKey = 'id_planta';
-    public $incrementing = true;    // id_planta auto‐incremental
-    protected $keyType = 'int';
-    public $timestamps = true;      // espera created_at y updated_at
 
+    // En la migración usamos bigIncrements('id_planta'), así que también es auto‐incremental.
+    public $incrementing = true;
+
+    // bigIncrements() crea un BIGINT, pero Laravel lo mapea como int en el modelo.
+    protected $keyType = 'int';
+
+    public $timestamps = true;
+
+    // En migración definimos: id_cliente, nombre, ubicacion
     protected $fillable = [
-        'cliente_id',               // FK hacia clientes.id_cliente
+        'id_cliente',
         'nombre',
         'ubicacion',
     ];
 
     public function cliente(): BelongsTo
     {
-        // Pertenece a un Cliente; en la tabla "plantas" hay "cliente_id"
-        // que referencia "clientes.id_cliente".
-        return $this->belongsTo(Cliente::class, 'cliente_id', 'id_cliente');
+        // En migración la tabla 'plantas' tiene una FK id_cliente → clientes.id_cliente
+        return $this->belongsTo(Cliente::class, 'id_cliente', 'id_cliente');
     }
 
     public function ordenes(): HasMany
     {
-        // Una Planta puede tener varias Órdenes Técnicas.
-        // En ordenes_tecnicas, la fk es "planta_id" que apunta a "plantas.id_planta".
-        return $this->hasMany(OrdenTecnica::class, 'planta_id', 'id_planta');
+        // En migración definimos FK planta_id → plantas.id_planta
+        return $this->hasMany(OrdenTecnica::class, 'id_planta', 'id_planta');
     }
 }

@@ -6,19 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('clientes', function (Blueprint $table) {
-            $table->integer('id_cliente')->primary();
+            // PK auto‐incremental SERIAL en PostgreSQL
+            $table->increments('id_cliente');
+
             $table->string('nombre', 100);
-            $table->string('ruc', 20);
-            $table->string('correo', 100);
-            $table->string('telefono', 20);
+            $table->string('ruc', 13)->unique();
+            $table->string('correo')->unique();
+            $table->string('telefono', 20)->nullable();
             $table->timestamps();
         });
+    }
 
+    public function down(): void
+    {
+        Schema::dropIfExists('clientes');
     }
 };

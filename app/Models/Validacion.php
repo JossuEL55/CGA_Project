@@ -12,20 +12,27 @@ class Validacion extends Model
 
     protected $table = 'validaciones';
     protected $primaryKey = 'id_validacion';
-    public $incrementing = false;
+
+    // En migración definimos increments('id_validacion'), por lo que es auto‐increment.
+    public $incrementing = true;
+
     protected $keyType = 'int';
     public $timestamps = true;
 
     protected $fillable = [
-        'id_validacion',
-        'id_orden',
-        'validado_por',
-        'fecha_validacion',
-        'estado_validacion',
+        'id_orden',        // FK → ordenes_tecnicas.id_orden
+        'id_supervisor',   // FK → tecnicos.id_tecnico
+        'resultado',       // Ej. 'Validada' o 'Rechazada'
+        'comentarios',     // Texto opcional
     ];
 
-    public function ordenTecnica(): BelongsTo
+    public function orden(): BelongsTo
     {
         return $this->belongsTo(OrdenTecnica::class, 'id_orden', 'id_orden');
+    }
+
+    public function supervisor(): BelongsTo
+    {
+        return $this->belongsTo(Tecnico::class, 'id_supervisor', 'id_tecnico');
     }
 }

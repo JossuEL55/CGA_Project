@@ -5,21 +5,28 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use App\Models\User;
+use App\Models\Cliente;
+use App\Models\Planta;
+use App\Models\Tecnico;
+use App\Models\OrdenTecnica;
+use App\Models\Validacion;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // 1. Crear roles si no existen
-        $adminRole = Role::firstOrCreate(['name' => 'admin']);
-        $supRole   = Role::firstOrCreate(['name' => 'supervisor']);
-        $tecRole   = Role::firstOrCreate(['name' => 'tecnico']);
+        //
+        // 1. Crear roles (si no existen)
+        //
+        $adminRole      = Role::firstOrCreate(['name' => 'admin']);
+        $supervisorRole = Role::firstOrCreate(['name' => 'supervisor']);
+        $tecnicoRole    = Role::firstOrCreate(['name' => 'tecnico']);
 
-        // 2. Crear al menos un usuario admin de prueba
+        //
+        // 2. Crear usuario Admin
+        //
         $adminUser = User::firstOrCreate(
             ['email' => 'admin@cga.ec'],
             [
@@ -29,31 +36,133 @@ class DatabaseSeeder extends Seeder
         );
         $adminUser->assignRole($adminRole);
 
-        $supervisor = User::firstOrCreate(
-    ['email' => 'Miguelsup@cga.ec'],
-    [
-        'name'     => 'Miguel Ampudia',
-        'password' => Hash::make('supcga')
-    ]
-    );
-    $supervisor->assignRole($supRole);
+        //
+        // 3. Crear usuario Supervisor
+        //
+        $supervisorUser = User::firstOrCreate(
+            ['email' => 'miguelsup@cga.ec'],
+            [
+                'name'     => 'Miguel Ampudia',
+                'password' => Hash::make('supcga'),
+            ]
+        );
+        $supervisorUser->assignRole($supervisorRole);
 
-    $tecnico1 = User::firstOrCreate(
-    ['email' => 'janethsu@cga.ec'],
-    [
-        'name'     => 'Janeth Suarez',
-        'password' => Hash::make('accescga')
-    ]
-);
-    $tecnico1->assignRole($tecRole);
+        //
+        // 4. Crear dos usuarios Técnicos (tabla 'users', con rol 'tecnico')
+        //
+        $tecnicoUser1 = User::firstOrCreate(
+            ['email' => 'janethsu@cga.ec'],
+            [
+                'name'     => 'Janeth Suarez',
+                'password' => Hash::make('accescga'),
+            ]
+        );
+        $tecnicoUser1->assignRole($tecnicoRole);
 
-    $tecnico2 = User::firstOrCreate(
-    ['email' => 'eduardo@cga.ec'],
-    [
-        'name'     => 'Eduardo Yanes',
-        'password' => Hash::make('accescga1')
-    ]
-);
-    $tecnico2->assignRole($tecRole);
+        $tecnicoUser2 = User::firstOrCreate(
+            ['email' => 'eduardo@cga.ec'],
+            [
+                'name'     => 'Eduardo Yanez',
+                'password' => Hash::make('accescga1'),
+            ]
+        );
+        $tecnicoUser2->assignRole($tecnicoRole);
+
+        //
+        // 5. Crear técnicos en tabla 'tecnicos'
+        //    (estos están “desvinculados” de los usuarios de login)
+        //
+        $tecnico1 = Tecnico::firstOrCreate(
+            ['cedula' => '1111446677'],
+            [
+                'nombre'      => 'Janeth Suarez',
+                'especialidad'=> 'Mecánica',
+            ]
+        );
+
+        $tecnico2 = Tecnico::firstOrCreate(
+            ['cedula' => '1724970389'],
+            [
+                'nombre'      => 'Eduardo Yanez',
+                'especialidad'=> 'Eléctrica',
+            ]
+        );
+
+        //
+        // 6. Crear un Cliente de ejemplo
+        //
+        $cliente = Cliente::firstOrCreate(
+            ['ruc' => '0124456788001'],  // ruc es único, evitamos duplicados
+            [
+                'nombre'   => 'SLB',
+                'correo'   => 'SLB@cga.ec',
+                'telefono' => '09991234567',
+            ]
+        );
+
+        //
+        // 7. Crear dos Plantas para ese Cliente
+        //
+        $planta1 = Planta::firstOrCreate(
+            [
+                'id_cliente' => $cliente->id_cliente,
+                'nombre'     => 'Planta Norte',
+            ],
+            [
+                'ubicacion' => 'Tiputini',
+            ]
+        );
+
+        $planta2 = Planta::firstOrCreate(
+            [
+                'id_cliente' => $cliente->id_cliente,
+                'nombre'     => 'Planta Sur',
+            ],
+            [
+                'ubicacion' => 'Km 8. Vía a la Joya de los Sachas',
+            ]
+        );
+
+        //
+        // 8. Crear dos Órdenes Técnicas, sin columna "observaciones"
+        //
+        $orden1 = OrdenTecnica::firstOrCreate(
+            [
+                'descripcion'    => 'Revisión inicial de turbina',
+                'fecha_servicio' => Carbon::now()->addDays(2)->toDateString(),
+                'estado'         => 'Pendiente',     // enum: Pendiente/En Proceso/Validada/Rechazada
+                'id_planta'      => $planta1->id_planta,
+                'id_tecnico'     => $tecnico1->id_tecnico,
+                // 'supervisor_id'   => null          // opcional, se omite para que quede null
+            ],
+            []
+        );
+
+        $orden2 = OrdenTecnica::firstOrCreate(
+            [
+                'descripcion'    => 'Mantenimiento preventivo y correctivo de tuberías',
+                'fecha_servicio' => Carbon::now()->addDays(5)->toDateString(),
+                'estado'         => 'Pendiente',
+                'id_planta'      => $planta2->id_planta,
+                'id_tecnico'     => $tecnico2->id_tecnico,
+            ],
+            []
+        );
+
+        //
+        // 9. Crear una Validación para la primera orden (usando EXACTAMENTE las columnas de la migración)
+        //
+        Validacion::firstOrCreate(
+            [
+                'id_validacion'    => 1,                        // Debe coincidir con la PK manual
+                'id_orden'         => $orden1->id_orden,
+                'validado_por'     => 'Miguel Ampudia',         // Nombre (string) del supervisor
+                'fecha_validacion' => Carbon::now()->toDateTimeString(),
+                'estado_validacion'=> 'Validada',               // puede ser 'Validada' o 'Rechazada'
+            ],
+            [
+            ]
+        );
     }
 }

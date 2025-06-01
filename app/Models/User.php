@@ -12,14 +12,14 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasRoles;
 
+    // nombre de la tabla es "users" (Laravel lo infiere)
+
     protected $fillable = [
         'name',
         'email',
         'password',
-        // Si creaste más campos en tu migración de users (ej. cargo, telefono), agrégalos aquí.
+        // Si añadiste otros campos (cedula, especialidad) en users, agrégalos aquí.
     ];
-
-    // Si añadiste campos custom (por ej. 'rol' o 'tipo_usuario'), inclúyelos en $fillable:
 
     protected $hidden = [
         'password',
@@ -30,7 +30,11 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    // Si quisieras, podrías agregar relaciones inversas:
+    // Si bien en este Core estamos usando la tabla "tecnicos" para las órdenes,
+    // este modelo User sirve para autenticación. Si necesitas enlazar User ↔ Tećnico,
+    // tendrías que crear una relación adicional (no está en el alcance básico del Core).
+
+    // Relaciones inversas a OrdenTecnica (solo si tu esquema usa user_id en lugar de id_tecnico).
     public function ordenesComoTecnico()
     {
         return $this->hasMany(OrdenTecnica::class, 'tecnico_id');
