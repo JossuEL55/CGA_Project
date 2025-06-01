@@ -12,12 +12,11 @@ class Cliente extends Model
 
     protected $table = 'clientes';
     protected $primaryKey = 'id_cliente';
-    public $incrementing = false;
+    public $incrementing = true;    // id_cliente será auto‐incremental
     protected $keyType = 'int';
-    public $timestamps = true;
+    public $timestamps = true;      // espera campos created_at y updated_at
 
     protected $fillable = [
-        'id_cliente',
         'nombre',
         'ruc',
         'correo',
@@ -26,6 +25,9 @@ class Cliente extends Model
 
     public function plantas(): HasMany
     {
-        return $this->hasMany(Planta::class, 'id_cliente', 'id_cliente');
+        // En la tabla "plantas", la columna foreign key se llama "cliente_id"
+        // y aquí la PK de Cliente es "id_cliente" según la migración.
+        return $this->hasMany(Planta::class, 'cliente_id', 'id_cliente');
     }
 }
+

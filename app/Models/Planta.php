@@ -1,9 +1,8 @@
 <?php
-
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -13,24 +12,27 @@ class Planta extends Model
 
     protected $table = 'plantas';
     protected $primaryKey = 'id_planta';
-    public $incrementing = false;
+    public $incrementing = true;    // id_planta auto‐incremental
     protected $keyType = 'int';
-    public $timestamps = true;
+    public $timestamps = true;      // espera created_at y updated_at
 
     protected $fillable = [
-        'id_planta',
+        'cliente_id',               // FK hacia clientes.id_cliente
         'nombre',
         'ubicacion',
-        'id_cliente',
     ];
 
     public function cliente(): BelongsTo
     {
-        return $this->belongsTo(Cliente::class, 'id_cliente', 'id_cliente');
+        // Pertenece a un Cliente; en la tabla "plantas" hay "cliente_id"
+        // que referencia "clientes.id_cliente".
+        return $this->belongsTo(Cliente::class, 'cliente_id', 'id_cliente');
     }
 
-    public function ordenesTecnicas(): HasMany
+    public function ordenes(): HasMany
     {
-        return $this->hasMany(OrdenTecnica::class, 'id_planta', 'id_planta');
+        // Una Planta puede tener varias Órdenes Técnicas.
+        // En ordenes_tecnicas, la fk es "planta_id" que apunta a "plantas.id_planta".
+        return $this->hasMany(OrdenTecnica::class, 'planta_id', 'id_planta');
     }
 }

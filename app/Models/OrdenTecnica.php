@@ -2,42 +2,50 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OrdenTecnica extends Model
 {
     use HasFactory;
 
     protected $table = 'ordenes_tecnicas';
-    protected $primaryKey = 'id_orden';
-    public $incrementing = false;
+    protected $primaryKey = 'id_orden'; // PK en migración, por ejemplo "increments('id_orden')"
+    public $incrementing = true;
     protected $keyType = 'int';
-    public $timestamps = true;
+    public $timestamps = true;          // espera created_at y updated_at
 
     protected $fillable = [
-        'id_orden',
-        'descripcion',
-        'fecha_servicio',
+        'cliente_id',     // FK → clientes.id_cliente
+        'planta_id',      // FK → plantas.id_planta
+        'tecnico_id',     // FK → users.id
+        'supervisor_id',  // FK → users.id
         'estado',
-        'id_planta',
-        'id_tecnico',
+        'observaciones',
     ];
+
+    public function cliente(): BelongsTo
+    {
+        // Pertenece a un Cliente; "cliente_id" referencia "clientes.id_cliente"
+        return $this->belongsTo(Cliente::class, 'cliente_id', 'id_cliente');
+    }
 
     public function planta(): BelongsTo
     {
-        return $this->belongsTo(Planta::class, 'id_planta', 'id_planta');
+        // Pertenece a una Planta; "planta_id" referencia "plantas.id_planta"
+        return $this->belongsTo(Planta::class, 'planta_id', 'id_planta');
     }
 
     public function tecnico(): BelongsTo
     {
-        return $this->belongsTo(Tecnico::class, 'id_tecnico', 'id_tecnico');
+        // Pertenece a un Usuario (técnico); "tecnico_id" referencia "users.id"
+        return $this->belongsTo(User::class, 'tecnico_id', 'id');
     }
 
-    public function validaciones(): HasMany
+    public function supervisor(): BelongsTo
     {
-        return $this->hasMany(Validacion::class, 'id_orden', 'id_orden');
+        // Pertenece a un Usuario (supervisor); "supervisor_id" referencia "users.id"
+        return $this->belongsTo(User::class, 'supervisor_id', 'id');
     }
 }
