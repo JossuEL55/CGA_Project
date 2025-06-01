@@ -2,14 +2,16 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SaludoController;
-use App\Models\OrdenTecnica;          // 1) Importa el modelo aquí
+use App\Http\Controllers\ClienteController;   // ← Importa tu ClienteController
+use App\Http\Controllers\PlantaController;    // ← Importa tu PlantaController
+use App\Models\OrdenTecnica;                 // 1) Importa el modelo aquí
 use Illuminate\Support\Facades\Route;
 
 // Rutas públicas
-Route::get('/', [SaludoController::class, 'index']); 
+Route::get('/', [SaludoController::class, 'index']);
 Route::get('/saludo', [SaludoController::class, 'index']);
 
-// Dashboard (requiere usuario autenticado)
+// Dashboard (requiere usuario autenticado y verificado)
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -29,7 +31,7 @@ Route::get('/debug-relaciones', function() {
     // Toma la primera OrdenTécnica y carga cliente, planta, técnico y supervisor
     $orden = OrdenTecnica::with(['cliente', 'planta', 'tecnico', 'supervisor'])->first();
 
-    // Si no hay ninguna orden en BD, devolvemos un array “vacío”
+    // Si no hay ninguna orden en BD, devolvemos un mensaje
     if (! $orden) {
         return response()->json([
             'mensaje' => 'No hay órdenes en la base de datos.'
@@ -37,17 +39,29 @@ Route::get('/debug-relaciones', function() {
     }
 
     return [
-        'orden_id'     => $orden->id,                     // Ten en cuenta que tu PK puede ser 'id_orden' o 'id'; ajusta si es distinto
-        'cliente'      => $orden->cliente?->nombre,        // Si existe relación cliente, mostramos nombre
-        'planta'       => $orden->planta?->nombre,         // Si existe relación planta, mostramos nombre
-        'tecnico'      => $orden->tecnico?->name,          // Si existe relación técnico, mostramos name
-        'supervisor'   => $orden->supervisor?->name,       // Si existe relación supervisor, mostramos name
+        'orden_id'     => $orden->id_orden,           // Ajusta a tu PK: 'id_orden', no 'id'
+        'cliente'      => $orden->cliente?->nombre,
+        'planta'       => $orden->planta?->nombre,
+        'tecnico'      => $orden->tecnico?->nombre,    // El modelo Tecnico usa 'nombre'
+        'supervisor'   => $orden->supervisor?->nombre, // También 'nombre'
         'estado'       => $orden->estado,
-        'observaciones'=> $orden->observaciones,
+        // Tu modelo no tiene 'observaciones', así que no lo devolvemos
+        // si quisieras un campo extra, asegúrate de que exista en la migración
     ];
 });
-// Si prefieres protegerla con autenticación, reemplaza la línea anterior por:
+// Para proteger /debug-relaciones con autenticación, usar:
 // Route::get('/debug-relaciones', function() { … })->middleware('auth');
+
+// ----------
+// Aquí añadimos nuestras rutas resource para admin
+// ----------
+
+Route::middleware(['auth', 'role:admin'])->group(function() {
+    // Resource completa para Clientes
+    Route::resource('clientes', ClienteController::class);
+    // Resource completa para Plantas
+    Route::resource('plantas', PlantaController::class);
+});
 
 // Finalmente cargamos las rutas de autenticación predeterminadas
 require __DIR__ . '/auth.php';

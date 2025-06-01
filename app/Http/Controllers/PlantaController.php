@@ -2,64 +2,61 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PlantaRequest;
 use App\Models\Planta;
+use App\Models\Cliente;
 use Illuminate\Http\Request;
 
 class PlantaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct()
+    {
+        // Sólo admin puede gestionar Plantas
+        $this->middleware(['auth', 'role:admin']);
+    }
+
     public function index()
     {
-        //
+        // traemos las plantas junto con su cliente (eager loading)
+        $plantas = Planta::with('cliente')->orderBy('nombre')->get();
+        return view('plantas.index', compact('plantas'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        // necesitamos lista de clientes para asignar a la planta
+        $clientes = Cliente::orderBy('nombre')->get();
+        return view('plantas.create', compact('clientes'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(PlantaRequest $request)
     {
-        //
+        Planta::create($request->validated());
+        return redirect()->route('plantas.index')
+                         ->with('success', 'Planta creada correctamente');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Planta $planta)
     {
-        //
+        return view('plantas.show', compact('planta'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Planta $planta)
     {
-        //
+        $clientes = Cliente::orderBy('nombre')->get();
+        return view('plantas.edit', compact('planta','clientes'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Planta $planta)
+    public function update(PlantaRequest $request, Planta $planta)
     {
-        //
+        $planta->update($request->validated());
+        return redirect()->route('plantas.index')
+                         ->with('success', 'Planta actualizada correctamente');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Planta $planta)
     {
-        //
+        $planta->delete();
+        return back()->with('success', 'Planta eliminada');
     }
 }
