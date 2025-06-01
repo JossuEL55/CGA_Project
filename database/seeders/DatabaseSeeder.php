@@ -17,16 +17,12 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        //
-        // 1. Crear roles (si no existen)
-        //
+        // 1. Crear roles
         $adminRole      = Role::firstOrCreate(['name' => 'admin']);
         $supervisorRole = Role::firstOrCreate(['name' => 'supervisor']);
         $tecnicoRole    = Role::firstOrCreate(['name' => 'tecnico']);
 
-        //
         // 2. Crear usuario Admin
-        //
         $adminUser = User::firstOrCreate(
             ['email' => 'admin@cga.ec'],
             [
@@ -36,9 +32,7 @@ class DatabaseSeeder extends Seeder
         );
         $adminUser->assignRole($adminRole);
 
-        //
         // 3. Crear usuario Supervisor
-        //
         $supervisorUser = User::firstOrCreate(
             ['email' => 'miguelsup@cga.ec'],
             [
@@ -48,9 +42,7 @@ class DatabaseSeeder extends Seeder
         );
         $supervisorUser->assignRole($supervisorRole);
 
-        //
-        // 4. Crear dos usuarios Técnicos (tabla 'users', con rol 'tecnico')
-        //
+        // 4. Crear dos usuarios Técnicos (roles en tabla users)
         $tecnicoUser1 = User::firstOrCreate(
             ['email' => 'janethsu@cga.ec'],
             [
@@ -69,10 +61,7 @@ class DatabaseSeeder extends Seeder
         );
         $tecnicoUser2->assignRole($tecnicoRole);
 
-        //
-        // 5. Crear técnicos en tabla 'tecnicos'
-        //    (estos están “desvinculados” de los usuarios de login)
-        //
+        // 5. Crear técnicos en tabla 'tecnicos' (desvinculados de users)
         $tecnico1 = Tecnico::firstOrCreate(
             ['cedula' => '1111446677'],
             [
@@ -89,11 +78,9 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        //
         // 6. Crear un Cliente de ejemplo
-        //
         $cliente = Cliente::firstOrCreate(
-            ['ruc' => '0124456788001'],  // ruc es único, evitamos duplicados
+            ['ruc' => '0124456788001'],
             [
                 'nombre'   => 'SLB',
                 'correo'   => 'SLB@cga.ec',
@@ -101,9 +88,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        //
         // 7. Crear dos Plantas para ese Cliente
-        //
         $planta1 = Planta::firstOrCreate(
             [
                 'id_cliente' => $cliente->id_cliente,
@@ -124,17 +109,15 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        //
-        // 8. Crear dos Órdenes Técnicas, sin columna "observaciones"
-        //
+        // 8. Crear dos Órdenes Técnicas
         $orden1 = OrdenTecnica::firstOrCreate(
             [
                 'descripcion'    => 'Revisión inicial de turbina',
                 'fecha_servicio' => Carbon::now()->addDays(2)->toDateString(),
-                'estado'         => 'Pendiente',     // enum: Pendiente/En Proceso/Validada/Rechazada
+                'estado'         => 'Pendiente',
                 'id_planta'      => $planta1->id_planta,
                 'id_tecnico'     => $tecnico1->id_tecnico,
-                // 'supervisor_id'   => null          // opcional, se omite para que quede null
+                // 'supervisor_id' => null (por defecto)
             ],
             []
         );
@@ -150,19 +133,22 @@ class DatabaseSeeder extends Seeder
             []
         );
 
-        //
-        // 9. Crear una Validación para la primera orden (usando EXACTAMENTE las columnas de la migración)
-        //
-        Validacion::firstOrCreate(
-            [
-                'id_validacion'    => 1,                        // Debe coincidir con la PK manual
-                'id_orden'         => $orden1->id_orden,
-                'validado_por'     => 'Miguel Ampudia',         // Nombre (string) del supervisor
-                'fecha_validacion' => Carbon::now()->toDateTimeString(),
-                'estado_validacion'=> 'Validada',               // puede ser 'Validada' o 'Rechazada'
-            ],
-            [
-            ]
-        );
+        // 9. Crear una Validación para la primera orden
+        $supervisor = Tecnico::first();
+        if (! $supervisor) {
+            $supervisor = Tecnico::create([
+                'nombre'       => 'Supervisor Ejemplo',
+                'cedula'       => '9999999999',
+                'especialidad' => 'Supervisor',
+            ]);
+        }
+
+        Validacion::firstOrCreate([
+            'id_orden'         => $orden1->id_orden,
+            'id_supervisor'    => $supervisor->id_tecnico,
+            'estado_validacion'=> 'Validada',
+            'comentarios'      => 'Todo OK',
+        ]);
     }
 }
+

@@ -1,54 +1,50 @@
+<!-- resources/views/clientes/index.blade.php -->
 @extends('layouts.app')
 
 @section('content')
 <div class="container mx-auto p-4">
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-semibold">Clientes</h2>
-        <a href="{{ route('clientes.create') }}" class="px-4 py-2 bg-blue-500 text-white rounded">
-            Nuevo Cliente
-        </a>
-    </div>
+    <h1 class="text-2xl font-bold mb-4">Clientes</h1>
 
-    @if(session('success'))
-      <div class="bg-green-100 text-green-800 p-2 rounded mb-4">
-        {{ session('success') }}
-      </div>
-    @endif
+    <input type="text" id="filtro" placeholder="Buscar cliente..." class="border rounded p-2 mb-4 w-full">
 
-    <table class="min-w-full bg-white">
-        <thead class="bg-gray-200">
+    <table class="min-w-full bg-white rounded shadow">
+        <thead class="bg-gray-100">
             <tr>
-                <th class="px-4 py-2 text-left">ID</th>
-                <th class="px-4 py-2 text-left">Nombre</th>
-                <th class="px-4 py-2 text-left">Razón Social</th>
-                <th class="px-4 py-2 text-left">Email</th>
-                <th class="px-4 py-2 text-left">Acciones</th>
+                <th class="px-4 py-2">ID</th>
+                <th class="px-4 py-2">Nombre</th>
+                <th class="px-4 py-2">Correo</th>
+                <th class="px-4 py-2">Acciones</th>
             </tr>
         </thead>
-        <tbody>
-            @forelse($clientes as $cliente)
-              <tr>
-                  <td class="border px-4 py-2">{{ $cliente->id }}</td>
-                  <td class="border px-4 py-2">{{ $cliente->nombre }}</td>
-                  <td class="border px-4 py-2">{{ $cliente->razon_social }}</td>
-                  <td class="border px-4 py-2">{{ $cliente->email }}</td>
-                  <td class="border px-4 py-2">
-                      <a href="{{ route('clientes.edit', $cliente) }}" class="text-blue-500 mr-2">Editar</a>
-                      <form action="{{ route('clientes.destroy', $cliente) }}" method="POST" class="inline-block">
-                          @csrf
-                          @method('DELETE')
-                          <button type="submit" class="text-red-500" onclick="return confirm('¿Eliminar este cliente?')">
-                            Eliminar
-                          </button>
-                      </form>
-                  </td>
-              </tr>
-            @empty
-              <tr>
-                  <td colspan="5" class="border px-4 py-2 text-center">No hay clientes registrados</td>
-              </tr>
-            @endforelse
+        <tbody id="tablaClientes">
+            @foreach($clientes as $cliente)
+            <tr>
+                <td class="border px-4 py-2">{{ $cliente->id_cliente }}</td>
+                <td class="border px-4 py-2">{{ $cliente->nombre }}</td>
+                <td class="border px-4 py-2">{{ $cliente->correo }}</td>
+                <td class="border px-4 py-2">
+                    <a href="{{ route('clientes.edit', $cliente) }}" class="text-blue-500">Editar</a>
+                    <form action="{{ route('clientes.destroy', $cliente) }}" method="POST" class="inline">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="text-red-500">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            @endforeach
         </tbody>
     </table>
+
+    <div class="mt-4">
+        {{ $clientes->links() }}
+    </div>
 </div>
+
+<script>
+document.getElementById('filtro').addEventListener('input', function() {
+    let filtro = this.value.toLowerCase();
+    document.querySelectorAll('#tablaClientes tr').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(filtro) ? '' : 'none';
+    });
+});
+</script>
 @endsection

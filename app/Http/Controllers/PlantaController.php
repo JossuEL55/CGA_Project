@@ -21,11 +21,11 @@ class PlantaController extends Controller
      *
      * @return View
      */
-    public function index(): View
-    {
-        $plantas = Planta::with('cliente')->orderBy('nombre')->get();
-        return view('plantas.index', compact('plantas'));
-    }
+        public function index(): View
+        {
+            $plantas = Planta::with('cliente')->orderBy('nombre')->get();
+            return view('plantas.index', compact('plantas'));
+        }
 
     /**
      * Mostrar el formulario para crear una nueva planta.
@@ -60,10 +60,6 @@ class PlantaController extends Controller
      * @param  Planta  $planta
      * @return View
      */
-    public function show(Planta $planta): View
-    {
-        return view('plantas.show', compact('planta'));
-    }
 
     /**
      * Mostrar el formulario para editar una planta existente.

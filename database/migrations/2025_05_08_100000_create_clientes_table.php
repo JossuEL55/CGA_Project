@@ -9,12 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('clientes', function (Blueprint $table) {
-            // PK auto‐incremental SERIAL en PostgreSQL
-            $table->increments('id_cliente');
-
+            $table->increments('id_cliente');        // SERIAL PK
             $table->string('nombre', 100);
             $table->string('ruc', 13)->unique();
-            $table->string('correo')->unique();
+            $table->string('correo')->unique();      // único
             $table->string('telefono', 20)->nullable();
             $table->timestamps();
         });

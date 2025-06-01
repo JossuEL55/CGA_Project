@@ -1,28 +1,29 @@
+<?php
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class OrdenRequest extends FormRequest
 {
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }
 
-    public function rules()
+    public function rules(): array
     {
-        if($this->isMethod('post')) {
-            // Creación de orden (solo admin)
+        if ($this->isMethod('post')) {
             return [
-                'cliente_id'    => 'required|exists:clientes,id',
-                'planta_id'     => 'required|exists:plantas,id',
-                'tecnico_id'    => 'nullable|exists:users,id',
-                'observaciones' => 'nullable|string|max:2000',
+                'descripcion'    => 'required|string',
+                'fecha_servicio' => 'nullable|date',
+                'id_planta'      => ['required', Rule::exists('plantas', 'id_planta')],
+                'id_tecnico'     => ['required', Rule::exists('tecnicos', 'id_tecnico')],
             ];
         }
 
-        if($this->isMethod('put')) {
-            // Actualización (solo observaciones, por técnico)
+        if ($this->isMethod('put')) {
+            // Un técnico solo modifica “observaciones”
             return [
                 'observaciones' => 'required|string|max:2000',
             ];
@@ -31,3 +32,4 @@ class OrdenRequest extends FormRequest
         return [];
     }
 }
+

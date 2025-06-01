@@ -9,9 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tecnicos', function (Blueprint $table) {
-            // PK auto‐incremental SERIAL en PostgreSQL
             $table->increments('id_tecnico');
-
             $table->string('nombre', 100);
             $table->string('cedula', 20)->unique();
             $table->string('especialidad', 100);
@@ -24,3 +22,4 @@ return new class extends Migration
         Schema::dropIfExists('tecnicos');
     }
 };
+

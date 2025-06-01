@@ -36,13 +36,5 @@ class User extends Authenticatable
     // tendrías que crear una relación adicional (no está en el alcance básico del Core).
 
     // Relaciones inversas a OrdenTecnica (solo si tu esquema usa user_id en lugar de id_tecnico).
-    public function ordenesComoTecnico()
-    {
-        return $this->hasMany(OrdenTecnica::class, 'tecnico_id');
-    }
 
-    public function ordenesComoSupervisor()
-    {
-        return $this->hasMany(OrdenTecnica::class, 'supervisor_id');
-    }
 }

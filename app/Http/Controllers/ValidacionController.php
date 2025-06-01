@@ -28,7 +28,20 @@ class ValidacionController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'id_orden' => 'required|exists:ordenes_tecnicas,id_orden',
+            'estado_validacion' => 'required|string|max:50',
+            'comentarios' => 'nullable|string|max:2000',
+        ]);
+
+        Validacion::create([
+            'id_orden' => $request->id_orden,
+            'estado_validacion' => $request->estado_validacion,
+            'comentarios' => $request->comentarios,
+            'id_supervisor' => auth()->id()
+        ]);
+
+        return redirect()->back()->with('success', 'Validación guardada correctamente.');
     }
 
     /**

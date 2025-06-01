@@ -8,19 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('plantas', function (Blueprint $table) {
-            // PK auto‐incremental (BIGSERIAL en PostgreSQL)
+       Schema::create('plantas', function (Blueprint $table) {
             $table->bigIncrements('id_planta');
-
-            // FK → clientes.id_cliente
             $table->unsignedInteger('id_cliente');
             $table->foreign('id_cliente')
                   ->references('id_cliente')
                   ->on('clientes')
                   ->onDelete('cascade');
-
             $table->string('nombre', 100);
-            $table->string('ubicacion', 150);
+            $table->string('ubicacion', 150)->nullable();
             $table->timestamps();
         });
     }
@@ -30,3 +26,4 @@ return new class extends Migration
         Schema::dropIfExists('plantas');
     }
 };
+

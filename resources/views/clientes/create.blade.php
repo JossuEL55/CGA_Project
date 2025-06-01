@@ -1,3 +1,4 @@
+<!-- resources/views/clientes/create.blade.php -->
 @extends('layouts.app')
 
 @section('content')
@@ -5,51 +6,21 @@
     <h2 class="text-2xl font-semibold mb-4">Nuevo Cliente</h2>
 
     @if($errors->any())
-      <div class="bg-red-100 text-red-800 p-2 rounded mb-4">
-        <ul>
-          @foreach($errors->all() as $error)
-            <li>{{ $error }}</li>
-          @endforeach
-        </ul>
-      </div>
+        <div class="text-red-600 mb-4">
+            @foreach($errors->all() as $error)
+                <p>{{ $error }}</p>
+            @endforeach
+        </div>
     @endif
 
     <form action="{{ route('clientes.store') }}" method="POST">
-      @csrf
+        @csrf
+        <input name="nombre" placeholder="Nombre Completo" class="w-full mb-2 p-2 border rounded">
+        <input name="ruc" placeholder="RUC (13 dígitos)" class="w-full mb-2 p-2 border rounded">
+        <input name="telefono" placeholder="+593 XX XXX XXXX" class="w-full mb-2 p-2 border rounded">
+        <input name="correo" placeholder="correo@empresa.com" class="w-full mb-2 p-2 border rounded">
 
-      <div class="mb-4">
-        <label class="block mb-1">Nombre <span class="text-red-500">*</span></label>
-        <input type="text" name="nombre" value="{{ old('nombre') }}"
-               class="w-full border p-2 rounded" required>
-      </div>
-
-      <div class="mb-4">
-        <label class="block mb-1">Razón Social</label>
-        <input type="text" name="razon_social" value="{{ old('razon_social') }}"
-               class="w-full border p-2 rounded">
-      </div>
-
-      <div class="mb-4">
-        <label class="block mb-1">Dirección</label>
-        <input type="text" name="direccion" value="{{ old('direccion') }}"
-               class="w-full border p-2 rounded">
-      </div>
-
-      <div class="mb-4">
-        <label class="block mb-1">Teléfono</label>
-        <input type="text" name="telefono" value="{{ old('telefono') }}"
-               class="w-full border p-2 rounded">
-      </div>
-
-      <div class="mb-4">
-        <label class="block mb-1">Email</label>
-        <input type="email" name="email" value="{{ old('email') }}"
-               class="w-full border p-2 rounded">
-      </div>
-
-      <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded">
-        Guardar Cliente
-      </button>
+        <button class="bg-green-600 text-white p-2 rounded">Guardar Cliente</button>
     </form>
 </div>
 @endsection
