@@ -5,10 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Permission\Traits\HasRoles;
 
 class Cliente extends Model
 {
-    use HasFactory;
+    use HasFactory, HasRoles;
+    protected $guard_name = 'web'; // <- Añadir esta línea
+
 
     // 1. Nombre de la tabla (Laravel lo infiere, pero no está de más)
     protected $table = 'clientes';
@@ -28,10 +31,10 @@ class Cliente extends Model
     // 6. Solo incluyo los campos que quiero asignar masivamente:
     //    no pongo 'id_cliente' aquí porque la BD lo genera sola.
     protected $fillable = [
-        'nombre',
-        'ruc',
-        'correo',
-        'telefono',
+        'name',
+        'email',
+        'password',
+        ,
     ];
 
     /**
