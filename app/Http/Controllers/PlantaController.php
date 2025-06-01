@@ -5,58 +5,104 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PlantaRequest;
 use App\Models\Planta;
 use App\Models\Cliente;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class PlantaController extends Controller
 {
     public function __construct()
     {
-        // Sólo admin puede gestionar Plantas
-        $this->middleware(['auth', 'role:admin']);
+        // Por ahora solo autenticación; cuando configures roles, reemplaza por ['auth','role:admin']
+        $this->middleware('auth');
     }
 
-    public function index()
+    /**
+     * Mostrar el listado de plantas.
+     *
+     * @return View
+     */
+    public function index(): View
     {
-        // traemos las plantas junto con su cliente (eager loading)
         $plantas = Planta::with('cliente')->orderBy('nombre')->get();
         return view('plantas.index', compact('plantas'));
     }
 
-    public function create()
+    /**
+     * Mostrar el formulario para crear una nueva planta.
+     *
+     * @return View
+     */
+    public function create(): View
     {
-        // necesitamos lista de clientes para asignar a la planta
+        // Necesitamos la lista de clientes para poblar el <select>
         $clientes = Cliente::orderBy('nombre')->get();
         return view('plantas.create', compact('clientes'));
     }
 
-    public function store(PlantaRequest $request)
+    /**
+     * Almacenar una planta recién creada en la base de datos.
+     *
+     * @param  PlantaRequest  $request
+     * @return RedirectResponse
+     */
+    public function store(PlantaRequest $request): RedirectResponse
     {
         Planta::create($request->validated());
-        return redirect()->route('plantas.index')
-                         ->with('success', 'Planta creada correctamente');
+
+        return redirect()
+            ->route('plantas.index')
+            ->with('success', 'Planta creada correctamente');
     }
 
-    public function show(Planta $planta)
+    /**
+     * Mostrar los detalles de una planta en particular.
+     *
+     * @param  Planta  $planta
+     * @return View
+     */
+    public function show(Planta $planta): View
     {
         return view('plantas.show', compact('planta'));
     }
 
-    public function edit(Planta $planta)
+    /**
+     * Mostrar el formulario para editar una planta existente.
+     *
+     * @param  Planta  $planta
+     * @return View
+     */
+    public function edit(Planta $planta): View
     {
         $clientes = Cliente::orderBy('nombre')->get();
-        return view('plantas.edit', compact('planta','clientes'));
+        return view('plantas.edit', compact('planta', 'clientes'));
     }
 
-    public function update(PlantaRequest $request, Planta $planta)
+    /**
+     * Actualizar la planta en la base de datos.
+     *
+     * @param  PlantaRequest  $request
+     * @param  Planta         $planta
+     * @return RedirectResponse
+     */
+    public function update(PlantaRequest $request, Planta $planta): RedirectResponse
     {
         $planta->update($request->validated());
-        return redirect()->route('plantas.index')
-                         ->with('success', 'Planta actualizada correctamente');
+
+        return redirect()
+            ->route('plantas.index')
+            ->with('success', 'Planta actualizada correctamente');
     }
 
-    public function destroy(Planta $planta)
+    /**
+     * Eliminar una planta de la base de datos.
+     *
+     * @param  Planta  $planta
+     * @return RedirectResponse
+     */
+    public function destroy(Planta $planta): RedirectResponse
     {
         $planta->delete();
+
         return back()->with('success', 'Planta eliminada');
     }
 }
