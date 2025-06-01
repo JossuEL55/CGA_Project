@@ -29,26 +29,31 @@ class DatabaseSeeder extends Seeder
         );
         $adminUser->assignRole($adminRole);
 
-        // Aquí podrías continuar creando otros usuarios o seeders, por ejemplo:
-        // $supervisorUser = User::firstOrCreate(
-        //     ['email' => 'supervisor@core.test'],
-        //     [
-        //         'name'     => 'Supervisor CGA',
-        //         'password' => Hash::make('sup2025'),
-        //     ]
-        // );
-        // $supervisorUser->assignRole($supRole);
-        //
-        // $tecnicoUser = User::firstOrCreate(
-        //     ['email' => 'tecnico@core.test'],
-        //     [
-        //         'name'     => 'Técnico CGA',
-        //         'password' => Hash::make('tec2025'),
-        //     ]
-        // );
-        // $tecnicoUser->assignRole($tecRole);
+        $supervisor = User::firstOrCreate(
+    ['email' => 'Miguelsup@cga.ec'],
+    [
+        'name'     => 'Miguel Ampudia',
+        'password' => Hash::make('supcga')
+    ]
+    );
+    $supervisor->assignRole($supRole);
 
-        // Si tienes más seeders individuales, los puedes llamar así:
-        // $this->call(OtroSeeder::class);
+    $tecnico1 = User::firstOrCreate(
+    ['email' => 'janethsu@cga.ec'],
+    [
+        'name'     => 'Janeth Suarez',
+        'password' => Hash::make('accescga')
+    ]
+);
+    $tecnico1->assignRole($tecRole);
+
+    $tecnico2 = User::firstOrCreate(
+    ['email' => 'eduardo@cga.ec'],
+    [
+        'name'     => 'Eduardo Yanes',
+        'password' => Hash::make('accescga1')
+    ]
+);
+    $tecnico2->assignRole($tecRole);
     }
 }
