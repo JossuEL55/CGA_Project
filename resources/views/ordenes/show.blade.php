@@ -1,32 +1,37 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto p-4">
-    <h2 class="text-2xl font-semibold mb-4">Detalle de Orden #{{ $ordenTecnica->id }}</h2>
+<div class="container mx-auto p-4 max-w-3xl">
+  <h1 class="text-2xl font-bold mb-4">Orden Técnica #{{ $ordenTecnica->id_orden }}</h1>
 
-    <div class="mb-4">
-        <p><strong>Cliente:</strong> {{ $ordenTecnica->cliente->nombre }}</p>
-        <p><strong>Planta:</strong> {{ $ordenTecnica->planta->nombre }}</p>
-        <p><strong>Técnico:</strong> {{ $ordenTecnica->tecnico ? $ordenTecnica->tecnico->name : 'Sin asignar' }}</p>
-        <p><strong>Observaciones:</strong> {{ $ordenTecnica->observaciones ?? '—' }}</p>
-        <p><strong>Estado:</strong> <span class="capitalize">{{ $ordenTecnica->estado }}</span></p>
+  <div class="mb-4">
+    <strong>Descripción:</strong> {{ $ordenTecnica->descripcion }}
+  </div>
+  <div class="mb-4">
+    <strong>Fecha Servicio:</strong> {{ $ordenTecnica->fecha_servicio }}
+  </div>
+  <div class="mb-4">
+    <strong>Estado:</strong> {{ $ordenTecnica->estado }}
+  </div>
+  <div class="mb-4">
+    <strong>Planta:</strong> {{ $ordenTecnica->planta->nombre ?? '' }}
+  </div>
+  <div class="mb-4">
+    <strong>Técnico:</strong> {{ $ordenTecnica->tecnico->nombre ?? '' }}
+  </div>
+
+  <h2 class="text-xl font-semibold mt-6 mb-2">Historial de Validaciones</h2>
+  @forelse($ordenTecnica->validaciones as $validacion)
+    <div class="border p-2 mb-2 rounded">
+      <p><strong>Estado:</strong> {{ $validacion->estado_validacion }}</p>
+      <p><strong>Supervisor:</strong> {{ $validacion->supervisor->nombre ?? 'N/A' }}</p>
+      <p><strong>Comentarios:</strong> {{ $validacion->comentarios ?? 'Sin comentarios' }}</p>
+      <p><strong>Fecha:</strong> {{ $validacion->created_at->format('d/m/Y H:i') }}</p>
     </div>
+  @empty
+    <p>No hay validaciones registradas.</p>
+  @endforelse
 
-    @if($ordenTecnica->estado === 'pendiente')
-      <form action="{{ route('ordenes.validar', $ordenTecnica) }}" method="POST">
-        @csrf
-        <div class="mb-4">
-          <label class="block mb-1">Marcar como:</label>
-          <select name="estado" class="w-full border p-2 rounded">
-            <option value="aprobada">Aprobada</option>
-            <option value="rechazada">Rechazada</option>
-          </select>
-        </div>
-        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded">Guardar Cambio</button>
-      </form>
-    @else
-      <p class="mt-4">Orden revisada por Supervisor ID 
-         {{ $ordenTecnica->supervisor_id }}.</p>
-    @endif
+  <a href="{{ route('ordenes.index') }}" class="inline-block mt-4 text-blue-600 hover:underline">Volver al listado</a>
 </div>
 @endsection

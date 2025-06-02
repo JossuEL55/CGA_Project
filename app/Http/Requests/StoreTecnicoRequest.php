@@ -16,7 +16,7 @@ class StoreTecnicoRequest extends FormRequest
     {
         return [
             'nombre'       => ['required','string','max:100'],
-            'cedula'       => ['required','digits:20', Rule::unique('tecnicos','cedula')],
+            'cedula'       => ['required','digits:10', Rule::unique('tecnicos','cedula')],
             'especialidad' => ['required','string','max:100'],
         ];
     }

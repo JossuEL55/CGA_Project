@@ -3,34 +3,42 @@
 namespace App\Http\Controllers;
 
 use App\Models\Validacion;
+use App\Models\OrdenTecnica;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class ValidacionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct()
     {
-        //
+        $this->middleware('auth');
+        $this->middleware('role:supervisor'); // Solo supervisores pueden validar
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    // Mostrar historial de validaciones (opcional, filtrado por orden)
+    public function index(Request $request): View
     {
-        //
+        $validaciones = Validacion::with(['orden', 'supervisor'])
+                            ->orderByDesc('created_at')
+                            ->paginate(15);
+
+        return view('validaciones.index', compact('validaciones'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    // Mostrar formulario para crear una validación para una orden específica
+    public function create(int $ordenId): View
     {
-        $request->validate([
+        $orden = OrdenTecnica::findOrFail($ordenId);
+        return view('validaciones.create', compact('orden'));
+    }
+
+    // Guardar validación en BD
+    public function store(Request $request): RedirectResponse
+    {
+           $request->validate([
             'id_orden' => 'required|exists:ordenes_tecnicas,id_orden',
-            'estado_validacion' => 'required|string|max:50',
+            'estado_validacion' => 'required|string|in:Validada,Rechazada',
             'comentarios' => 'nullable|string|max:2000',
         ]);
 
@@ -38,41 +46,22 @@ class ValidacionController extends Controller
             'id_orden' => $request->id_orden,
             'estado_validacion' => $request->estado_validacion,
             'comentarios' => $request->comentarios,
-            'id_supervisor' => auth()->id()
+            'id_supervisor' => auth()->user()->id, // O ajusta según relación con técnicos
         ]);
 
-        return redirect()->back()->with('success', 'Validación guardada correctamente.');
+        // Opcional: actualizar estado en orden técnica
+        $orden = OrdenTecnica::findOrFail($request->id_orden);
+        $orden->estado = $request->estado_validacion === 'Validada' ? 'Validada' : 'Rechazada';
+        $orden->supervisor_id = auth()->user()->id; // o id técnico supervisor
+        $orden->save();
+
+        return redirect()->route('validaciones.index')->with('success', 'Validación registrada correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Validacion $validacion)
+    // Mostrar detalle de validación
+    public function show(Validacion $validacion): View
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Validacion $validacion)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Validacion $validacion)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Validacion $validacion)
-    {
-        //
+        $validacion->load(['orden', 'supervisor']);
+        return view('validaciones.show', compact('validacion'));
     }
 }

@@ -40,7 +40,9 @@ class OrdenTecnica extends Model
     {
         return $this->belongsTo(Tecnico::class, 'supervisor_id', 'id_tecnico');
     }
-
+public function validaciones(){
+    return $this->hasMany(Validacion::class, 'id_orden', 'id_orden');
+}
     
 
 }

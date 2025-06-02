@@ -18,7 +18,7 @@ class UpdateTecnicoRequest extends FormRequest
             'nombre'       => ['required','string','max:100'],
             'cedula'       => [
                 'required',
-                'digits:20',
+                'digits:10',
                 Rule::unique('tecnicos','cedula')->ignore($this->tecnico->id_tecnico, 'id_tecnico'),
             ],
             'especialidad' => ['required','string','max:100'],

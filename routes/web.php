@@ -23,40 +23,34 @@ Route::middleware('auth')->group(function() {
     Route::patch('/profile', [ProfileController::class,'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class,'destroy'])->name('profile.destroy');
 });
-
-// —————— RUTAS ADMIN ——————
-Route::middleware('auth')->group(function() {
-    // CRUD Cliente
+// Rutas Admin
+Route::middleware('auth')->group(function(){
     Route::resource('clientes', ClienteController::class);
-
-    // CRUD Planta
     Route::resource('plantas', PlantaController::class);
-
-    // CRUD Técnico
-    Route::resource('tecnicos', TecnicoController::class)->except(['show']);
-    // (si no usas show, lo omites; o bien incluye show si lo creaste)
-
-    // Crear/almacenar Órdenes (un admin puede crear)
-    Route::get('ordenes/create', [OrdenTecnicaController::class,'create'])->name('ordenes.create');
-    Route::post('ordenes', [OrdenTecnicaController::class,'store'])->name('ordenes.store');
+    Route::resource('tecnicos', TecnicoController::class);
+    Route::resource('ordenes', OrdenTecnicaController::class)->except(['edit', 'update', 'validar']);
 });
 
-// —————— RUTAS ADMIN|SUPERVISOR ——————
-Route::middleware('auth')->group(function() {
-    // Listar Órdenes
-    Route::get('ordenes', [OrdenTecnicaController::class,'index'])->name('ordenes.index');
-    // Ver detalle y validar
-    Route::get('ordenes/{ordenTecnica}', [OrdenTecnicaController::class,'show'])->name('ordenes.show');
-    Route::post('ordenes/{ordenTecnica}/validar', [OrdenTecnicaController::class,'validar'])->name('ordenes.validar');
+// Rutas Supervisor
+Route::middleware('auth')->group(function(){
+    Route::get('ordenes', [OrdenTecnicaController::class, 'index'])->name('ordenes.index');
+    Route::post('ordenes/{ordenTecnica}/validar', [OrdenTecnicaController::class, 'validar'])->name('ordenes.validar');
+    Route::resource('validaciones', ValidacionController::class)->only(['index','show','store','create']);
 });
-
 // —————— RUTAS TÉCNICO ——————
-Route::middleware('auth')->group(function() {
-    // Compartido: index estropea la ruta index de admin/supervisor, pero definiste index arriba.
-    // Para editar observaciones:
+// Rutas Técnico
+Route::middleware('auth')->group(function(){
     Route::get('ordenes/{ordenTecnica}/edit', [OrdenTecnicaController::class,'edit'])->name('ordenes.edit');
     Route::put('ordenes/{ordenTecnica}', [OrdenTecnicaController::class,'update'])->name('ordenes.update');
 });
+
+Route::middleware('auth')->group(function () {
+    Route::get('validaciones', [ValidacionController::class, 'index'])->name('validaciones.index');
+    Route::get('validaciones/create/{orden}', [ValidacionController::class, 'create'])->name('validaciones.create');
+    Route::post('validaciones', [ValidacionController::class, 'store'])->name('validaciones.store');
+    Route::get('validaciones/{validacion}', [ValidacionController::class, 'show'])->name('validaciones.show');
+});
+
 
 // Carga rutas de autenticación predeterminadas (login, register, etc.)
 require __DIR__.'/auth.php';

@@ -42,43 +42,44 @@ class DatabaseSeeder extends Seeder
         );
         $supervisorUser->assignRole($supervisorRole);
 
-        // 4. Crear dos usuarios Técnicos (roles en tabla users)
-        $tecnicoUser1 = User::firstOrCreate(
+        // 4. Crear usuarios Técnicos y técnicos vinculados
+        $userTecnico1 = User::firstOrCreate(
             ['email' => 'janethsu@cga.ec'],
             [
-                'name'     => 'Janeth Suarez',
+                'name' => 'Janeth Suarez',
                 'password' => Hash::make('accescga'),
             ]
         );
-        $tecnicoUser1->assignRole($tecnicoRole);
+        $userTecnico1->assignRole($tecnicoRole);
 
-        $tecnicoUser2 = User::firstOrCreate(
-            ['email' => 'eduardo@cga.ec'],
-            [
-                'name'     => 'Eduardo Yanez',
-                'password' => Hash::make('accescga1'),
-            ]
-        );
-        $tecnicoUser2->assignRole($tecnicoRole);
-
-        // 5. Crear técnicos en tabla 'tecnicos' (desvinculados de users)
         $tecnico1 = Tecnico::firstOrCreate(
             ['cedula' => '1111446677'],
             [
                 'nombre'      => 'Janeth Suarez',
                 'especialidad'=> 'Mecánica',
+                'user_id'     => $userTecnico1->id,
             ]
         );
+
+        $userTecnico2 = User::firstOrCreate(
+            ['email' => 'eduardo@cga.ec'],
+            [
+                'name' => 'Eduardo Yanez',
+                'password' => Hash::make('accescga1'),
+            ]
+        );
+        $userTecnico2->assignRole($tecnicoRole);
 
         $tecnico2 = Tecnico::firstOrCreate(
-            ['cedula' => '1724970389'],
+            ['cedula' => '2222333344'],
             [
                 'nombre'      => 'Eduardo Yanez',
-                'especialidad'=> 'Eléctrica',
+                'especialidad'=> 'Inspección',
+                'user_id'     => $userTecnico2->id,
             ]
         );
 
-        // 6. Crear un Cliente de ejemplo
+        // 5. Crear un Cliente de ejemplo
         $cliente = Cliente::firstOrCreate(
             ['ruc' => '0124456788001'],
             [
@@ -88,7 +89,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 7. Crear dos Plantas para ese Cliente
+        // 6. Crear dos Plantas para ese Cliente
         $planta1 = Planta::firstOrCreate(
             [
                 'id_cliente' => $cliente->id_cliente,
@@ -109,7 +110,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 8. Crear dos Órdenes Técnicas
+        // 7. Crear dos Órdenes Técnicas
         $orden1 = OrdenTecnica::firstOrCreate(
             [
                 'descripcion'    => 'Revisión inicial de turbina',
@@ -117,9 +118,7 @@ class DatabaseSeeder extends Seeder
                 'estado'         => 'Pendiente',
                 'id_planta'      => $planta1->id_planta,
                 'id_tecnico'     => $tecnico1->id_tecnico,
-                // 'supervisor_id' => null (por defecto)
-            ],
-            []
+            ]
         );
 
         $orden2 = OrdenTecnica::firstOrCreate(
@@ -129,26 +128,26 @@ class DatabaseSeeder extends Seeder
                 'estado'         => 'Pendiente',
                 'id_planta'      => $planta2->id_planta,
                 'id_tecnico'     => $tecnico2->id_tecnico,
-            ],
-            []
+            ]
         );
 
-        // 9. Crear una Validación para la primera orden
-        $supervisor = Tecnico::first();
-        if (! $supervisor) {
-            $supervisor = Tecnico::create([
-                'nombre'       => 'Supervisor Ejemplo',
+        // 8. Crear una Validación para la primera orden
+        $supervisorTecnico = Tecnico::where('nombre', 'Miguel Ampudia')->first();
+
+        if (!$supervisorTecnico) {
+            $supervisorTecnico = Tecnico::create([
+                'nombre'       => 'Miguel Ampudia',
                 'cedula'       => '9999999999',
                 'especialidad' => 'Supervisor',
+                'user_id'      => $supervisorUser->id,
             ]);
         }
 
         Validacion::firstOrCreate([
-            'id_orden'         => $orden1->id_orden,
-            'id_supervisor'    => $supervisor->id_tecnico,
-            'estado_validacion'=> 'Validada',
-            'comentarios'      => 'Todo OK',
+            'id_orden'          => $orden1->id_orden,
+            'id_supervisor'     => $supervisorTecnico->id_tecnico,
+            'estado_validacion' => 'Validada',
+            'comentarios'       => 'Todo OK',
         ]);
     }
 }
-

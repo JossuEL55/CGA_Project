@@ -12,5 +12,19 @@
     <main class="py-4">
         @yield('content')
     </main>
+@if(auth()->user()->unreadNotifications->count())
+    <div class="notifications p-4 bg-yellow-100 rounded mb-4">
+        <h4 class="font-bold mb-2">Notificaciones</h4>
+        <ul>
+            @foreach(auth()->user()->unreadNotifications as $notification)
+                <li class="mb-1">
+                    {{ $notification->data['mensaje'] }}
+                    <a href="{{ route('ordenes.show', $notification->data['orden_id']) }}" class="text-blue-600 underline">Ver</a>
+                </li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 </body>
 </html>

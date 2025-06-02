@@ -1,51 +1,39 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto p-4">
-    <h2 class="text-2xl font-semibold mb-4">Editar Planta</h2>
+<div class="container mx-auto p-4 max-w-lg">
+  <h1 class="text-2xl font-bold mb-4">Editar Planta</h1>
 
-    @if($errors->any())
-      <div class="bg-red-100 text-red-800 p-2 rounded mb-4">
-        <ul>
-          @foreach($errors->all() as $error)
-            <li>{{ $error }}</li>
-          @endforeach
-        </ul>
-      </div>
-    @endif
+  @if($errors->any())
+    <div class="bg-red-100 text-red-700 p-3 mb-4 rounded">
+      <ul>
+        @foreach ($errors->all() as $error)
+          <li>- {{ $error }}</li>
+        @endforeach
+      </ul>
+    </div>
+  @endif
 
-    <form action="{{ route('plantas.update', $planta) }}" method="POST">
-      @csrf
-      @method('PUT')
+  <form action="{{ route('plantas.update', $planta) }}" method="POST" novalidate>
+    @csrf
+    @method('PUT')
 
-      <div class="mb-4">
-        <label class="block mb-1">Cliente <span class="text-red-500">*</span></label>
-        <select name="cliente_id" class="w-full border p-2 rounded" required>
-          <option value="">-- Seleccione Cliente --</option>
-          @foreach($clientes as $cliente)
-            <option value="{{ $cliente->id }}"
-              {{ old('cliente_id', $planta->cliente_id) == $cliente->id ? 'selected' : '' }}>
-              {{ $cliente->nombre }}
-            </option>
-          @endforeach
-        </select>
-      </div>
+    <label class="block mb-1 font-semibold" for="id_cliente">Cliente *</label>
+    <select id="id_cliente" name="id_cliente" class="border p-2 rounded w-full mb-4" required>
+      <option value="">Seleccione cliente</option>
+      @foreach($clientes as $cliente)
+        <option value="{{ $cliente->id_cliente }}" {{ old('id_cliente', $planta->id_cliente) == $cliente->id_cliente ? 'selected' : '' }}>{{ $cliente->nombre }}</option>
+      @endforeach
+    </select>
 
-      <div class="mb-4">
-        <label class="block mb-1">Nombre de la Planta <span class="text-red-500">*</span></label>
-        <input type="text" name="nombre" value="{{ old('nombre', $planta->nombre) }}"
-               class="w-full border p-2 rounded" required>
-      </div>
+    <label class="block mb-1 font-semibold" for="nombre">Nombre *</label>
+    <input type="text" id="nombre" name="nombre" value="{{ old('nombre', $planta->nombre) }}" placeholder="Nombre de la planta" class="border p-2 rounded w-full mb-4" required>
 
-      <div class="mb-4">
-        <label class="block mb-1">Ubicación</label>
-        <input type="text" name="ubicacion" value="{{ old('ubicacion', $planta->ubicacion) }}"
-               class="w-full border p-2 rounded">
-      </div>
+    <label class="block mb-1 font-semibold" for="ubicacion">Ubicación</label>
+    <input type="text" id="ubicacion" name="ubicacion" value="{{ old('ubicacion', $planta->ubicacion) }}" placeholder="Ubicación física" class="border p-2 rounded w-full mb-4">
 
-      <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded">
-        Actualizar Planta
-      </button>
-    </form>
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Actualizar</button>
+    <a href="{{ route('plantas.index') }}" class="ml-4 text-gray-600 hover:underline">Cancelar</a>
+  </form>
 </div>
 @endsection

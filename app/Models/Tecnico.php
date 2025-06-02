@@ -46,4 +46,8 @@ class Tecnico extends Model
         // En ordenes_tecnicas: supervisor_id → tecnicos.id_tecnico
         return $this->hasMany(OrdenTecnica::class, 'supervisor_id', 'id_tecnico');
     }
+    public function user()
+{
+    return $this->belongsTo(User::class, 'user_id', 'id');
+}
 }

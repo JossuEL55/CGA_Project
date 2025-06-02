@@ -1,77 +1,56 @@
 @extends('layouts.app')
 
-@section('title', 'Listado de Plantas')
-
 @section('content')
-<div class="max-w-7xl mx-auto space-y-8">
+<div class="container mx-auto p-4">
+  <h1 class="text-2xl font-bold mb-4">Plantas</h1>
 
-  {{-- Encabezado con título y botón --}}
-  <div class="flex justify-between items-center">
-    <h1 class="text-3xl font-bold text-gray-800">Plantas</h1>
-    <a href="{{ route('plantas.create') }}"
-       class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-      <!-- Ícono "+" -->
-      <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-      </svg>
-      Nueva Planta
-    </a>
-  </div>
+  <a href="{{ route('plantas.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded mb-4 inline-block hover:bg-blue-700">
+    Nueva Planta
+  </a>
 
-  {{-- Mensaje Flash --}}
-  @if(session('success'))
-    <div class="bg-green-100 border border-green-300 text-green-800 px-4 py-3 rounded">
-      {{ session('success') }}
-    </div>
-  @endif
+  <input type="text" id="buscador" placeholder="Buscar plantas..." class="border rounded p-2 mb-4 w-full">
 
-  {{-- Tabla de Plantas --}}
-  <div class="bg-white shadow rounded-lg overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-        </tr>
-      </thead>
-      <tbody class="bg-white divide-y divide-gray-100">
-        @forelse($plantas as $planta)
-          <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $planta->id_planta }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $planta->cliente->nombre }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $planta->nombre }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $planta->ubicacion ?? '–' }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 space-x-2">
-              <a href="{{ route('plantas.edit', $planta) }}"
-                 class="text-blue-500 hover:underline">Editar</a>
-              <form action="{{ route('plantas.destroy', $planta) }}" method="POST" class="inline">
-                @csrf
-                @method('DELETE')
-                <button type="submit"
-                        onclick="return confirm('¿Eliminar esta planta?')"
-                        class="text-red-500 hover:underline">
-                  Eliminar
-                </button>
-              </form>
-            </td>
-          </tr>
-        @empty
-          <tr>
-            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-              No hay plantas registradas.
-            </td>
-          </tr>
-        @endforelse
-      </tbody>
-    </table>
-  </div>
+  <table class="min-w-full bg-white rounded shadow">
+    <thead class="bg-gray-100">
+      <tr>
+        <th class="px-4 py-2">ID</th>
+        <th class="px-4 py-2">Cliente</th>
+        <th class="px-4 py-2">Nombre</th>
+        <th class="px-4 py-2">Ubicación</th>
+        <th class="px-4 py-2">Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tabla-plantas">
+      @foreach ($plantas as $planta)
+      <tr>
+        <td class="border px-4 py-2">{{ $planta->id_planta }}</td>
+        <td class="border px-4 py-2">{{ $planta->cliente->nombre }}</td>
+        <td class="border px-4 py-2">{{ $planta->nombre }}</td>
+        <td class="border px-4 py-2">{{ $planta->ubicacion }}</td>
+        <td class="border px-4 py-2">
+          <a href="{{ route('plantas.edit', $planta) }}" class="text-blue-600 hover:underline mr-2">Editar</a>
+          <form action="{{ route('plantas.destroy', $planta) }}" method="POST" class="inline" onsubmit="return confirm('¿Eliminar planta?');">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="text-red-600 hover:underline">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      @endforeach
+    </tbody>
+  </table>
 
-  {{-- Paginación opcional --}}
   <div class="mt-4">
     {{ $plantas->links() }}
   </div>
 </div>
+
+<script>
+  document.getElementById('buscador').addEventListener('input', function() {
+    const filtro = this.value.toLowerCase();
+    document.querySelectorAll('#tabla-plantas tr').forEach(tr => {
+      tr.style.display = tr.textContent.toLowerCase().includes(filtro) ? '' : 'none';
+    });
+  });
+</script>
 @endsection

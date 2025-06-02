@@ -31,10 +31,10 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    // Si bien en este Core estamos usando la tabla "tecnicos" para las órdenes,
-    // este modelo User sirve para autenticación. Si necesitas enlazar User ↔ Tećnico,
-    // tendrías que crear una relación adicional (no está en el alcance básico del Core).
+   public function tecnico()
+{
+    return $this->hasOne(Tecnico::class, 'user_id', 'id');
+}
 
-    // Relaciones inversas a OrdenTecnica (solo si tu esquema usa user_id en lugar de id_tecnico).
 
 }

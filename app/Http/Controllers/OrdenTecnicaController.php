@@ -29,20 +29,20 @@ class OrdenTecnicaController extends Controller
     }
 
     public function index(): View
-    {
-        $user = auth()->user();
+{
+    $user = auth()->user();
 
-        $query = OrdenTecnica::with(['planta','tecnico','supervisor'])
-                             ->orderByDesc('created_at');
-
-        if ($user->hasRole('tecnico')) {
-            $query->where('id_tecnico', $user->id);
-        }
-        // admin y supervisor ven todo
-
-        $ordenes = $query->get();
-        return view('ordenes.index', compact('ordenes'));
+    $query = OrdenTecnica::with(['planta','tecnico','supervisor'])->orderByDesc('created_at');
+    
+    if ($user->hasRole('tecnico')) {
+        $tecnicoId = $user->tecnico ? $user->tecnico->id_tecnico : 0;
+        $query->where('id_tecnico', $tecnicoId);
     }
+
+    $ordenes = $query->paginate(10);
+
+    return view('ordenes.index', compact('ordenes'));
+}
 
     public function create(): View
     {
@@ -66,15 +66,14 @@ class OrdenTecnicaController extends Controller
             ->with('success', 'Orden creada correctamente');
     }
 
-    public function show(OrdenTecnica $ordenTecnica): View
-    {
-        // Recarga relaciones
-        $ordenTecnica->load(['planta.cliente','tecnico','supervisor']);
-        return view('ordenes.show', compact('ordenTecnica'));
-    }
+    public function show(OrdenTecnica $ordenTecnica): View{
+    $ordenTecnica->load(['planta.cliente', 'tecnico', 'supervisor', 'validaciones.supervisor']);
+    return view('ordenes.show', compact('ordenTecnica'));
+}
 
     public function edit(OrdenTecnica $ordenTecnica): View
     {
+        $this->authorize('update', $ordenTecnica);
         $user = auth()->user();
         if ($ordenTecnica->id_tecnico !== $user->id) {
             abort(403);
@@ -93,21 +92,37 @@ class OrdenTecnicaController extends Controller
             ->with('success', 'Observaciones guardadas');
     }
 
-    public function validar(Request $request, OrdenTecnica $ordenTecnica): RedirectResponse
+    use App\Notifications\OrdenEstadoActualizado;
+
+public function validar(Request $request, OrdenTecnica $orden)
 {
+    $this->authorize('validar', $orden);
+
     $request->validate([
-        'estado' => 'required|in:Pendiente,En Proceso,Validada,Rechazada',
+        'estado' => 'required|in:Validada,Rechazada',
+        'comentarios' => 'nullable|string|max:2000',
     ]);
 
-    $supervisor = Tecnico::where('cedula', auth()->user()->cedula)->first();
+    $supervisor = auth()->user()->tecnico;
 
-    $ordenTecnica->estado = $request->estado;
-    $ordenTecnica->supervisor_id = $supervisor ? $supervisor->id_tecnico : null;
-    $ordenTecnica->save();
+    $orden->estado = $request->estado;
+    $orden->supervisor_id = $supervisor ? $supervisor->id_tecnico : null;
+    $orden->save();
 
-    return redirect()
-        ->route('ordenes.index')
-        ->with('success', 'Orden validada correctamente.');
+    $orden->validaciones()->create([
+        'id_supervisor' => $orden->supervisor_id,
+        'estado_validacion' => $request->estado,
+        'comentarios' => $request->comentarios,
+    ]);
+
+    // Notificar al técnico responsable
+    if ($orden->tecnico && $orden->tecnico->user) {
+        $orden->tecnico->user->notify(new OrdenEstadoActualizado($orden));
+    }
+
+    return redirect()->route('ordenes.index')->with('success', 'Orden validada y técnico notificado.');
+
+
 }
 
 }

@@ -2,54 +2,60 @@
 
 @section('content')
 <div class="container mx-auto p-4">
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-semibold">Órdenes Técnicas</h2>
-        @role('admin')
-          <a href="{{ route('ordenes.create') }}" class="px-4 py-2 bg-blue-500 text-white rounded">Nueva Orden</a>
-        @endrole
-    </div>
+  <h1 class="text-2xl font-bold mb-4">Órdenes Técnicas</h1>
 
-    @if(session('success'))
-      <div class="bg-green-100 text-green-800 p-2 rounded mb-4">
-        {{ session('success') }}
-      </div>
-    @endif
+  <a href="{{ route('ordenes.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded mb-4 inline-block hover:bg-blue-700">
+    Nueva Orden Técnica
+  </a>
 
-    <table class="min-w-full bg-white">
-        <thead class="bg-gray-200">
-            <tr>
-                <th class="px-4 py-2">ID</th>
-                <th class="px-4 py-2">Cliente</th>
-                <th class="px-4 py-2">Planta</th>
-                <th class="px-4 py-2">Técnico</th>
-                <th class="px-4 py-2">Estado</th>
-                <th class="px-4 py-2">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($ordenes as $orden)
-              <tr>
-                <td class="border px-4 py-2">{{ $orden->id }}</td>
-                <td class="border px-4 py-2">{{ $orden->cliente->nombre }}</td>
-                <td class="border px-4 py-2">{{ $orden->planta->nombre }}</td>
-                <td class="border px-4 py-2">
-                  {{ $orden->tecnico ? $orden->tecnico->name : 'Sin asignar' }}
-                </td>
-                <td class="border px-4 py-2 capitalize">{{ $orden->estado }}</td>
-                <td class="border px-4 py-2">
-                  @role('admin|supervisor')
-                    <a href="{{ route('ordenes.show', $orden) }}" class="text-blue-500 mr-2">Ver</a>
-                  @endrole
+  <input type="text" id="buscador" placeholder="Buscar órdenes..." class="border rounded p-2 mb-4 w-full">
 
-                  @role('tecnico')
-                    @if($orden->tecnico_id === auth()->id() && $orden->estado === 'pendiente')
-                      <a href="{{ route('ordenes.edit', $orden) }}" class="text-green-500">Editar</a>
-                    @endif
-                  @endrole
-                </td>
-              </tr>
-            @endforeach
-        </tbody>
-    </table>
+  <table class="min-w-full bg-white rounded shadow">
+    <thead class="bg-gray-100">
+      <tr>
+        <th class="px-4 py-2">ID</th>
+        <th class="px-4 py-2">Descripción</th>
+        <th class="px-4 py-2">Fecha Servicio</th>
+        <th class="px-4 py-2">Estado</th>
+        <th class="px-4 py-2">Planta</th>
+        <th class="px-4 py-2">Técnico</th>
+        <th class="px-4 py-2">Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tabla-ordenes">
+      @foreach ($ordenes as $orden)
+      <tr>
+        <td class="border px-4 py-2">{{ $orden->id_orden }}</td>
+        <td class="border px-4 py-2">{{ $orden->descripcion }}</td>
+        <td class="border px-4 py-2">{{ $orden->fecha_servicio }}</td>
+        <td class="border px-4 py-2">{{ $orden->estado }}</td>
+        <td class="border px-4 py-2">{{ $orden->planta->nombre ?? '' }}</td>
+        <td class="border px-4 py-2">{{ $orden->tecnico->nombre ?? '' }}</td>
+        <td class="border px-4 py-2">
+          <a href="{{ route('ordenes.show', $orden) }}" class="text-blue-600 hover:underline mr-2">Ver</a>
+          @can('update', $orden)
+          <a href="{{ route('ordenes.edit', $orden) }}" class="text-green-600 hover:underline mr-2">Editar</a>
+          @endcan
+          @can('validar', $orden)
+          <a href="{{ route('ordenes.validar', $orden) }}" class="text-purple-600 hover:underline">Validar</a>
+          @endcan
+        </td>
+      </tr>
+      @endforeach
+    </tbody>
+  </table>
+
+  <div class="mt-4">
+    {{ $ordenes->links() }}
+  </div>
 </div>
+
+<script>
+  document.getElementById('buscador').addEventListener('input', function() {
+    const filtro = this.value.toLowerCase();
+    document.querySelectorAll('#tabla-ordenes tr').forEach(tr => {
+      tr.style.display = tr.textContent.toLowerCase().includes(filtro) ? '' : 'none';
+    });
+  });
+</script>
 @endsection

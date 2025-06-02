@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+git status
         Schema::create('clientes', function (Blueprint $table) {
             $table->increments('id_cliente');        // SERIAL PK
             $table->string('nombre', 100);
