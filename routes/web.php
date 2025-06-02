@@ -39,8 +39,10 @@ Route::middleware('auth')->group(function () {
     // (si no usas show, lo omites; o bien incluye show si lo creaste)
 
     // Crear/almacenar Órdenes (un admin puede crear)
-    Route::get('ordenes/create', [OrdenTecnicaController::class, 'create'])->name('ordenes.create');
-    Route::post('ordenes', [OrdenTecnicaController::class, 'store'])->name('ordenes.store');
+    Route::get('ordenes/{ordenTecnica}/asignar', [OrdenTecnicaController::class, 'asignarTecnicoForm'])->name('ordenes.asignar.form');
+
+    // Procesar asignación de técnico
+    Route::post('ordenes/{ordenTecnica}/asignar', [OrdenTecnicaController::class, 'asignarTecnico'])->name('ordenes.asignar');
 });
 
 // —————— RUTAS ADMIN|SUPERVISOR ——————
