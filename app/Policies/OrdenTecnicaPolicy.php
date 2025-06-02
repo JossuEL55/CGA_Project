@@ -4,29 +4,41 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\OrdenTecnica;
+use Illuminate\Auth\Access\HandlesAuthorization;
 
 class OrdenTecnicaPolicy
 {
-    // Método para permitir actualización solo al técnico asignado
-    public function update(User $user, OrdenTecnica $orden)
+    use HandlesAuthorization;
+
+    /**
+     * Método que intercepta primero: si el user es "admin" le damos acceso total.
+     * Pero en este ejemplo despreciamos “admin” y queremos que solo el
+     * supervisor pueda validar. Si quisiera que admin también valide, podría quedar:
+     *
+     *     if($user->rol==='admin') return true;
+     *
+     * En este caso dejamos TODO a false excepto validar().
+     */
+    public function before(User $user, $ability)
     {
-        return $user->hasRole('tecnico') &&
-               $user->tecnico &&
-               $orden->id_tecnico == $user->tecnico->id_tecnico;
+        // Si quisieras dejar que admin también valide, descomenta la siguiente línea:
+        // if($user->rol==='admin') return true;
     }
 
-    // Método para validar solo para supervisores
+    /**
+     * Este método controla si el usuario puede cambiar el estado de la orden.
+     * (Es decir, “validar” la orden.) Solo devolvemos true para 'supervisor'.
+     */
     public function validar(User $user, OrdenTecnica $orden)
     {
-        return $user->hasRole('supervisor');
+        return $user->rol === 'supervisor';
     }
 
-    // Método para ver la orden para admin, supervisor o técnico asignado
-    public function view(User $user, OrdenTecnica $orden)
-    {
-        return $user->hasAnyRole(['admin', 'supervisor']) ||
-               ($user->hasRole('tecnico') &&
-                $user->tecnico &&
-                $orden->id_tecnico == $user->tecnico->id_tecnico);
-    }
+    // IMPORTANTE: no definimos viewAny, view, create, update, etc.  
+    // Si un método no existe, Laravel lo trata como “no autorizado”.  
+    // Solo existe validar(): por lo tanto, todas las demás acciones
+    // (crear/editar/ver detalles) caerán por defecto en “403” si
+    // las autorizas con esta policy.  
+    // Pero para no bloquear “index” o “show”, simplemente NO LLEVES
+    // a cabo ninguna llamada a authorize() en esos métodos.
 }

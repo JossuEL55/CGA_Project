@@ -2,48 +2,95 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Model;
 
 class Cliente extends Model
 {
-    use HasFactory, HasRoles;
-    protected $guard_name = 'web'; // <- Añadir esta línea
+    use HasFactory;
 
-
-    // 1. Nombre de la tabla (Laravel lo infiere, pero no está de más)
-    protected $table = 'clientes';
-
-    // 2. Clave primaria personalizada
+    // Si tu PK es “id_cliente” en lugar de “id”, agrégalo:
     protected $primaryKey = 'id_cliente';
 
-    // 3. increments('id_cliente') hace que la PK sea auto-incremental
+    // Si quieres usar auto-increment con nombre personalizado:
     public $incrementing = true;
-
-    // 4. increments() genera un entero en la BD, así que el tipo es 'int'
     protected $keyType = 'int';
 
-    // 5. Laravel manejará created_at y updated_at
-    public $timestamps = true;
-
-    // 6. Solo incluyo los campos que quiero asignar masivamente:
-    //    no pongo 'id_cliente' aquí porque la BD lo genera sola.
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        ,
+        'nombre',
+        'ruc',
+        'correo',
+        'telefono',
+        // … otros campos que hayas definido
     ];
 
-    /**
-     * Relación: un cliente tiene muchas plantas.
-     */
-    public function plantas(): HasMany
+    // Si es necesario, define relaciones con Plantas, etc.
+    public function plantas()
     {
-        // En la migración definimos `id_cliente` como FK en plantas.
         return $this->hasMany(Planta::class, 'id_cliente', 'id_cliente');
     }
 }
+<?php
 
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Cliente extends Model
+{
+    use HasFactory;
+
+    // Si tu PK es “id_cliente” en lugar de “id”, agrégalo:
+    protected $primaryKey = 'id_cliente';
+
+    // Si quieres usar auto-increment con nombre personalizado:
+    public $incrementing = true;
+    protected $keyType = 'int';
+
+    protected $fillable = [
+        'nombre',
+        'ruc',
+        'correo',
+        'telefono',
+        // … otros campos que hayas definido
+    ];
+
+    // Si es necesario, define relaciones con Plantas, etc.
+    public function plantas()
+    {
+        return $this->hasMany(Planta::class, 'id_cliente', 'id_cliente');
+    }
+}
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Cliente extends Model
+{
+    use HasFactory;
+
+    // Si tu PK es “id_cliente” en lugar de “id”, agrégalo:
+    protected $primaryKey = 'id_cliente';
+
+    // Si quieres usar auto-increment con nombre personalizado:
+    public $incrementing = true;
+    protected $keyType = 'int';
+
+    protected $fillable = [
+        'nombre',
+        'ruc',
+        'correo',
+        'telefono',
+        // … otros campos que hayas definido
+    ];
+
+    // Si es necesario, define relaciones con Plantas, etc.
+    public function plantas()
+    {
+        return $this->hasMany(Planta::class, 'id_cliente', 'id_cliente');
+    }
+}

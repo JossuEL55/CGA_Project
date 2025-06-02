@@ -21,8 +21,5 @@ class AppServiceProvider extends ServiceProvider
     {
         //
     }
-    protected $policies = [
-    OrdenTecnica::class => OrdenTecnicaPolicy::class,
-    // Puedes registrar otras policies aquí (ClientePolicy, PlantaPolicy, etc.)
-];
+    
 }

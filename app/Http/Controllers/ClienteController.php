@@ -12,18 +12,19 @@ class ClienteController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        // → Cuando configures roles, reemplaza por ['auth','role:admin']
+        // → si luego quieres restringir solo a admins, podrías agregar:
+        // $this->middleware(['auth','role:admin']);
     }
 
     /**
      * Mostrar listado de clientes.
      */
-   public function index(): View
-{
-    $clientes = Cliente::orderBy('nombre')->paginate(10); // Cambiado get() por paginate()
-    return view('clientes.index', compact('clientes'));
-}
-
+    public function index(): View
+    {
+        // Obtenemos los clientes paginados
+        $clientes = Cliente::orderBy('nombre')->paginate(10);
+        return view('clientes.index', compact('clientes'));
+    }
 
     /**
      * Mostrar formulario para crear un nuevo cliente.
@@ -38,7 +39,6 @@ class ClienteController extends Controller
      */
     public function store(ClienteRequest $request): RedirectResponse
     {
-        // Aquí ClienteRequest validará los campos según su rules()
         Cliente::create($request->validated());
 
         return redirect()
@@ -46,11 +46,17 @@ class ClienteController extends Controller
             ->with('success', 'Cliente creado correctamente');
     }
 
+    /**
+     * Mostrar formulario para editar un cliente existente.
+     */
     public function edit(Cliente $cliente): View
     {
         return view('clientes.edit', compact('cliente'));
     }
 
+    /**
+     * Actualizar la información de un cliente.
+     */
     public function update(ClienteRequest $request, Cliente $cliente): RedirectResponse
     {
         $cliente->update($request->validated());
@@ -59,9 +65,16 @@ class ClienteController extends Controller
             ->with('success', 'Cliente actualizado correctamente');
     }
 
+    /**
+     * Eliminar un cliente.
+     */
     public function destroy(Cliente $cliente): RedirectResponse
     {
         $cliente->delete();
         return back()->with('success', 'Cliente eliminado');
     }
+    public function show(Cliente $cliente)
+{
+    return view('clientes.show', compact('cliente'));
+}
 }

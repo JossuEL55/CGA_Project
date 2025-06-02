@@ -22,13 +22,6 @@ class OrdenRequest extends FormRequest
             ];
         }
 
-        if ($this->isMethod('put')) {
-            // Un técnico solo modifica “observaciones”
-            return [
-                'observaciones' => 'required|string|max:2000',
-            ];
-        }
-
         return [];
     }
 }

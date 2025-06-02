@@ -12,20 +12,26 @@ class PlantaController extends Controller
 {
     public function __construct()
     {
-        // Por ahora solo autenticación; cuando configures roles, reemplaza por ['auth','role:admin']
+        // Sólo usuarios autenticados pueden acceder
         $this->middleware('auth');
+        // Si luego quieres restringir solo a admins:
+        // $this->middleware(['auth','role:admin']);
     }
 
     /**
-     * Mostrar el listado de plantas.
+     * Mostrar el listado de plantas (paginado).
      *
      * @return View
      */
-        public function index(): View
-        {
-            $plantas = Planta::with('cliente')->orderBy('nombre')->get();
-            return view('plantas.index', compact('plantas'));
-        }
+    public function index(): View
+    {
+        // Antes era ->get(), ahora usamos ->paginate(10):
+        $plantas = Planta::with('cliente')
+                         ->orderBy('nombre')
+                         ->paginate(10);
+
+        return view('plantas.index', compact('plantas'));
+    }
 
     /**
      * Mostrar el formulario para crear una nueva planta.
@@ -34,7 +40,7 @@ class PlantaController extends Controller
      */
     public function create(): View
     {
-        // Necesitamos la lista de clientes para poblar el <select>
+        // Necesitamos la lista de clientes para el <select>
         $clientes = Cliente::orderBy('nombre')->get();
         return view('plantas.create', compact('clientes'));
     }
@@ -53,13 +59,6 @@ class PlantaController extends Controller
             ->route('plantas.index')
             ->with('success', 'Planta creada correctamente');
     }
-
-    /**
-     * Mostrar los detalles de una planta en particular.
-     *
-     * @param  Planta  $planta
-     * @return View
-     */
 
     /**
      * Mostrar el formulario para editar una planta existente.

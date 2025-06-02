@@ -3,80 +3,55 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Validation\Rules;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
-
+use App\Http\Requests\RegisterRequest;   // <--- Nuestro FormRequest
 use App\Models\User;
 use App\Models\Tecnico;
-use App\Models\Cliente;
-use App\Models\Role;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
     /**
-     * Mostrar formulario de registro.
+     * Mostrar el formulario de registro.
      */
     public function create(): View
     {
-        $roles = Role::all(); // Cargar roles desde la base de datos
-        return view('auth.register', compact('roles'));
+        return view('auth.register');
     }
 
     /**
-     * Registrar nuevo usuario según su rol.
+     * Procesar el formulario de registro.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(RegisterRequest $request)
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                'unique:users,email',
-                'unique:tecnicos,email',
-                'unique:clientes,email'
-            ],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'in:admin,tecnico,supervisor'],
+        // 1) Creamos el usuario en 'users'
+        $user = User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
         ]);
 
-        $data = [
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ];
-
-        // Guardar en tabla correspondiente
-        switch ($request->role) {
-            case 'admin':
-                $user = User::create($data);
-                break;
-            case 'tecnico':
-                $user = Tecnico::create($data);
-                break;
-            case 'supervisor':
-                $user = Cliente::create($data);
-                break;
-            default:
-                abort(400, 'Rol no válido');
-        }
-
-        // Asignar rol usando Spatie
+        // 2) Asignamos el rol al usuario (usando Spatie/Permission)
         $user->assignRole($request->role);
 
-        // Solo loguear si es admin (modelo User)
-        if ($request->role === 'admin') {
-            event(new Registered($user));
-            Auth::login($user);
+        // 3) Si el rol es 'tecnico', guardamos la fila en 'tecnicos'
+        if ($request->role === 'tecnico') {
+            Tecnico::create([
+                'nombre'       => $request->nombre_tecnico,
+                'cedula'       => $request->cedula,
+                'especialidad' => $request->especialidad,
+            ]);
         }
 
+        // 4) Disparamos evento Registered para que Laravel (ej. email de verificación) lo maneje
+        event(new Registered($user));
+
+        // 5) Logueamos automáticamente al usuario recién creado
+        Auth::login($user);
+
+        // 6) Redirigimos al dashboard (o ruta que prefieras)
         return redirect()->route('dashboard');
     }
 }

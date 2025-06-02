@@ -34,13 +34,9 @@ class OrdenTecnica extends Model
     {
         return $this->belongsTo(Tecnico::class, 'supervisor_id', 'id_tecnico');
     }
-<<<<<<< HEAD
 public function validaciones(){
-    return $this->hasMany(Validacion::class, 'id_orden', 'id_orden');
+    return $this->hasMany(Validacion::class,'id_orden');
 }
     
 
 }
-=======
-}
->>>>>>> origin/develop2
