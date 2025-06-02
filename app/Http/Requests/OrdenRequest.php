@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -8,7 +9,7 @@ class OrdenRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return true; 
     }
 
     public function rules(): array
@@ -16,13 +17,13 @@ class OrdenRequest extends FormRequest
         if ($this->isMethod('post')) {
             return [
                 'descripcion'    => 'required|string',
-                'fecha_servicio' => 'nullable|date',
+                'fecha_servicio' => 'required|date',
                 'id_planta'      => ['required', Rule::exists('plantas', 'id_planta')],
-                'id_tecnico'     => ['required', Rule::exists('tecnicos', 'id_tecnico')],
+                'id_tecnico'     => ['nullable', Rule::exists('tecnicos', 'id_tecnico')],
+            
             ];
         }
 
         return [];
     }
 }
-

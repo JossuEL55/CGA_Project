@@ -1,0 +1,62 @@
+/* Variables de color */
+:root {
+  --verde-oscuro: #2E7D32;
+  --verde-claro: #66BB6A;
+  --texto-blanco: #fff;
+}
+
+/* Navbar verde oscuro */
+.navbar-dark {
+  background-color: var(--verde-oscuro);
+}
+
+/* Enlaces navbar */
+.navbar-dark .nav-link {
+  color: var(--texto-blanco);
+}
+
+.navbar-dark .nav-link:hover, 
+.navbar-dark .nav-link.active, 
+.navbar-dark .nav-link:focus {
+  color: var(--verde-claro);
+}
+
+/* Dropdown */
+.dropdown-menu {
+  border-radius: 0.25rem;
+  box-shadow: 0 0.5rem 1rem rgb(0 0 0 / 0.15);
+}
+
+/* Botones primarios con verde oscuro */
+.btn-primary {
+  background-color: var(--verde-oscuro);
+  border-color: var(--verde-oscuro);
+}
+
+.btn-primary:hover {
+  background-color: var(--verde-claro);
+  border-color: var(--verde-claro);
+}
+
+/* Footer */
+footer.bg-success {
+  background-color: var(--verde-oscuro);
+  color: var(--texto-blanco);
+}
+
+/* Tablas */
+.table thead th {
+  background-color: var(--verde-oscuro);
+  color: var(--texto-blanco);
+}
+
+.table tbody tr:hover {
+  background-color: var(--verde-claro);
+  color: var(--texto-blanco);
+}
+
+/* Inputs y formularios */
+.form-control:focus {
+  border-color: var(--verde-oscuro);
+  box-shadow: 0 0 0 0.25rem rgba(46, 125, 50, 0.25);
+}

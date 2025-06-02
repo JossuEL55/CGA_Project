@@ -9,19 +9,16 @@ class OrdenTecnica extends Model
 {
     use HasFactory;
 
-    protected $table = 'ordenes_tecnicas'; // nombre real de la tabla
+    protected $table = 'ordenes_tecnicas';
     protected $primaryKey = 'id_orden';
-    public $incrementing = true;
-    protected $keyType = 'int';
-    public $timestamps = true;
 
+    // Solo los campos que realmente existen en la tabla
     protected $fillable = [
         'descripcion',
-        'observaciones',
         'fecha_servicio',
-        'estado',
         'id_planta',
         'id_tecnico',
+        'estado',
         'supervisor_id',
     ];
 
@@ -34,9 +31,14 @@ class OrdenTecnica extends Model
     {
         return $this->belongsTo(Tecnico::class, 'supervisor_id', 'id_tecnico');
     }
-public function validaciones(){
-    return $this->hasMany(Validacion::class,'id_orden');
-}
-    
 
+    public function planta()
+    {
+        return $this->belongsTo(Planta::class, 'id_planta', 'id_planta');
+    }
+
+    public function validaciones()
+    {
+        return $this->hasMany(Validacion::class, 'id_orden');
+    }
 }

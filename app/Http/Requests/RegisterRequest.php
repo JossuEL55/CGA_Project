@@ -39,8 +39,7 @@ class RegisterRequest extends FormRequest
 
     public function withValidator($validator)
     {
-        // Aquí agregamos validación condicional: si role es “tecnico”, 
-        // entonces los campos nombre_tecnico, cedula y especialidad son obligatorios.
+    
         $validator->sometimes(
             ['nombre', 'cedula', 'especialidad'],
             ['required'], // reglas adicionales

@@ -7,166 +7,189 @@ use App\Models\OrdenTecnica;
 use App\Models\Cliente;
 use App\Models\Planta;
 use App\Models\Tecnico;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OrdenTecnicaController extends Controller
 {
     public function __construct()
     {
-        // Solo autenticados pueden llegar a CUALQUIER método:
+        // Solo usuarios autenticados pueden acceder a cualquiera de estos métodos
         $this->middleware('auth');
     }
 
     /**
-     * Mostrar listado de órdenes.
-     * CUALQUIER usuario autenticado las puede ver (Admin, Supervisor, Técnicos, etc.).
+     * Mostrar listado de órdenes técnicas.
+     * - Si el usuario es “técnico”, solo ve sus propias órdenes.
+     * - Si no, ve todas.
      */
     public function index(): View
     {
         $user = Auth::user();
-        $query = OrdenTecnica::with(['planta.cliente','tecnico','supervisor'])
-                    ->orderByDesc('created_at');
 
-        // Si el user es técnico, solo mostramos sus órdenes
-        if ($user->rol==='tecnico') {
-            // NOTA: aquí suponemos que en la tabla "ordenes_tecnicas" hay
-            // un campo id_tecnico que apunta a id_tecnico en tu tabla tecnicos,
-            // y que a su vez $user->tecnico->id_tecnico está bien configurado.
+        // Cargamos relaciones: planta → cliente, técnico asignado y supervisor
+        $query = OrdenTecnica::with(['planta.cliente', 'tecnico', 'supervisor'])
+            ->orderByDesc('created_at');
+
+        // Si el usuario tiene rol “tecnico”, filtramos solo sus órdenes
+        if ($user->rol === 'tecnico') {
             $tecnicoId = $user->tecnico->id_tecnico ?? 0;
             $query->where('id_tecnico', $tecnicoId);
         }
 
+        // Paginamos (10 por página)
         $ordenes = $query->paginate(10);
 
         return view('ordenes.index', compact('ordenes'));
     }
 
     /**
-     * Mostrar detalles de una orden.
-     * CUALQUIER usuario autenticado puede verla si está en su propia lista (index).
-     * No hacemos validación de policy aquí; quien ya no la vea, sencillamente
-     * no encontrará ese enlace en la vista index si no le toca.
-     */
-    public function show(OrdenTecnica $orden): View
-    {
-        // Aún si quisieras, NO cobramos $this->authorize('view',$orden);
-        // porque te interesa solo la validación (no bloqueamos show).
-        $orden->load(['planta.cliente','tecnico','supervisor','validaciones']);
-        return view('ordenes.show', compact('orden'));
-    }
-
-    /**
-     * Mostrar formulario de creación de orden.
-     * CUALQUIERA autenticado puede entrar a create si quieres.
-     * (Si en tu lógica quieres restringir quién puede crearlas,
-     *  aquí iría $this->authorize('create',Orden::class), pero omitimos.)
+     * Mostrar formulario para crear una nueva orden.
+     * Carga listas de clientes, plantas y técnicos.
      */
     public function create(): View
     {
         $clientes = Cliente::orderBy('nombre')->get();
         $plantas  = Planta::with('cliente')->orderBy('nombre')->get();
         $tecnicos = Tecnico::orderBy('nombre')->get();
-        return view('ordenes.create', compact('clientes','plantas','tecnicos'));
+
+        return view('ordenes.create', compact('clientes', 'plantas', 'tecnicos'));
     }
 
     /**
-     * Almacenar la orden nueva.
-     * CUALQUIERA autenticado puede hacerlo (o podrías limitar a admin/supervisor
-     * si deseas, agregando $this->authorize('create',OrdenTecnica::class) aquí).
+     * Almacenar la nueva orden en la base de datos.
+     * Por defecto, le ponemos estado "Pendiente" y supervisor_id = null.
      */
     public function store(OrdenRequest $request): RedirectResponse
     {
         OrdenTecnica::create($request->validated() + [
             'estado'        => 'Pendiente',
             'supervisor_id' => null,
-            // 'id_tecnico' vendrá del form si el usuario la asigna
         ]);
 
         return redirect()
             ->route('ordenes.index')
-            ->with('success','Orden creada correctamente');
+            ->with('success', 'Orden creada correctamente');
     }
-
-    /**
-     * Mostrar formulario para editar (solo observaciones del técnico).
-     * CUALQUIERA autenticado puede editar si ya es el técnico asignado:
-     * pero como tu pregunta va SOLO a "validar", no lo bloqueamos aquí.
-     */
-    public function edit(OrdenTecnica $orden): View
+ public function historial(Request $request)
     {
-        // Si quisieras bloquear edición a solo quien toque:
-        // $this->authorize('update',$orden);
-        return view('ordenes.edit', compact('orden'));
-    }
+        // Preparamos la consulta base con relaciones
+        $query = OrdenTecnica::with(['planta.cliente', 'tecnico', 'supervisor'])
+                             ->orderByDesc('created_at');
 
-    public function update(OrdenRequest $request, OrdenTecnica $orden): RedirectResponse
-    {
-        // $this->authorize('update',$orden);  // opcional
-        $orden->update([
-            'observaciones' => $request->validated()['observaciones'],
-        ]);
+        // Si viene cliente_id en query string, filtramos
+        if ($request->filled('cliente_id')) {
+            $clienteId = $request->input('cliente_id');
+            $query->whereHas('planta', function($q) use ($clienteId) {
+                $q->where('id_cliente', $clienteId);
+            });
+        }
 
-        return redirect()
-            ->route('ordenes.index')
-            ->with('success','Observaciones actualizadas');
-    }
+        // Si viene tecnico_id en query string, filtramos
+        if ($request->filled('tecnico_id')) {
+            $query->where('id_tecnico', $request->input('tecnico_id'));
+        }
 
-    /**
-     * Mostrar formulario para asignar técnico.
-     * CUALQUIERA autenticado puede entrar (o bloqueas con authorize('update')).
-     */
-    public function asignarTecnicoForm(OrdenTecnica $orden): View
-    {
+        $ordenes = $query->paginate(10);
+
+        // Para los select de filtros
+        $clientes = Cliente::orderBy('nombre')->get();
         $tecnicos = Tecnico::orderBy('nombre')->get();
-        return view('ordenes.asignar', compact('orden','tecnicos'));
-    }
 
-    public function asignarTecnico(Request $request, OrdenTecnica $orden): RedirectResponse
-    {
-        $request->validate([
-            'id_tecnico' => 'required|exists:tecnicos,id_tecnico'
-        ]);
-
-        $orden->update(['id_tecnico' => $request->id_tecnico]);
-
-        return redirect()
-            ->route('ordenes.index')
-            ->with('success','Técnico asignado correctamente');
+        return view('ordenes.historial', compact('ordenes', 'clientes', 'tecnicos'));
     }
 
     /**
-     * Mostrar formulario de validación (solo supervisor).
+     * Historial de órdenes de un cliente específico.
+     */
+    public function historialPorCliente(Cliente $cliente)
+    {
+        $ordenes = OrdenTecnica::with(['planta.cliente', 'tecnico', 'supervisor'])
+            ->whereHas('planta', function($q) use ($cliente) {
+                $q->where('id_cliente', $cliente->id_cliente);
+            })
+            ->orderByDesc('created_at')
+            ->paginate(10);
+
+        return view('ordenes.historial_por_cliente', compact('ordenes', 'cliente'));
+    }
+
+    /**
+     * Historial de órdenes de un técnico específico.
+     */
+    public function historialPorTecnico(Tecnico $tecnico)
+    {
+        $ordenes = OrdenTecnica::with(['planta.cliente', 'tecnico', 'supervisor'])
+            ->where('id_tecnico', $tecnico->id_tecnico)
+            ->orderByDesc('created_at')
+            ->paginate(10);
+
+        return view('ordenes.historial_por_tecnico', compact('ordenes', 'tecnico'));
+    }
+    public function show($id): View
+    {
+        // 1) Buscar la orden en BD por su ID (o lanzar 404 si no existe)
+        $orden = OrdenTecnica::with(['planta.cliente', 'tecnico', 'supervisor'])
+                             ->findOrFail($id);
+
+        // 2) Retornar la vista 'ordenes.show' pasándole la orden como variable
+        return view('ordenes.show', compact('orden'));
+    }
+    /**
+     * Mostrar formulario de validación (solo si Policy 'validar' lo permite).
      */
     public function validarForm(OrdenTecnica $orden): View
     {
-        // *** Aquí invocamos la policy validar() ***
+      
         $this->authorize('validar', $orden);
 
         return view('ordenes.validar', compact('orden'));
     }
+ public function dashboard(): View
+    {
+        // Consulta 1: total de órdenes
+        $totalOrdenes = OrdenTecnica::count();
 
+        // Consulta 2: conteo agrupado por 'estado'
+        // Ajusta los valores de estado a los que realmente uses (Pendiente, En Proceso, Validada, Rechazada, etc.)
+        $conteoPorEstado = OrdenTecnica::select('estado', DB::raw('count(*) as total'))
+            ->groupBy('estado')
+            ->pluck('total', 'estado'); 
+            // ->pluck('total','estado') devuelve un array tipo ['Pendiente' => 5, 'Validada' => 12, ...]
+
+        // Para que estén en orden fijo, definimos los estados que usas en tu sistema.
+        // Si no están, los ponemos en cero:
+        $estados = [
+            'Pendiente'    => $conteoPorEstado->get('Pendiente', 0),
+            'En Proceso'   => $conteoPorEstado->get('En Proceso', 0),
+            'Validada'     => $conteoPorEstado->get('Validada', 0),
+            'Rechazada'    => $conteoPorEstado->get('Rechazada', 0),
+        ];
+
+        return view('ordenes.dashboard', compact('totalOrdenes','estados'));
+    }
     /**
-     * Procesar la validación POST (solo supervisor).
+     * Procesar la validación POST (solo si Policy 'validar' lo permite).
      */
     public function validar(Request $request, OrdenTecnica $orden): RedirectResponse
     {
         $this->authorize('validar', $orden);
 
         $data = $request->validate([
-            'estado'        => 'required|in:Pendiente,En Proceso,Validada,Rechazada',
-            'observaciones' => 'nullable|string|max:1000',
+            'estado' => 'required|in:Pendiente,En Proceso,Validada,Rechazada',
         ]);
 
-        $estadoAnterior       = $orden->estado;
+
+        $estadoAnterior = $orden->estado;
+
+        
         $orden->estado        = $data['estado'];
-        // Suponemos que $user->rol==='supervisor' y tiene relación con tecnico
         $orden->supervisor_id = Auth::user()->tecnico->id_tecnico; 
         $orden->save();
 
-        // Crear registro en validaciones
         $orden->validaciones()->create([
             'id_orden'        => $orden->id_orden,
             'id_tecnico'      => $orden->tecnico->id_tecnico ?? null,
@@ -176,24 +199,8 @@ class OrdenTecnicaController extends Controller
             'fecha_validacion'=> now(),
         ]);
 
-        // Notificar si quieres
-        if($orden->tecnico && $orden->tecnico->user){
-            $orden->tecnico->user
-                  ->notify(new \App\Notifications\OrdenEstadoActualizado($orden));
-        }
-
         return redirect()
             ->route('ordenes.index')
-            ->with('success',"Orden #{$orden->id_orden} actualizada a “{$data['estado']}”.");
-    }
-
-    /**
-     * Eliminar orden (si lo necesitas).
-     */
-    public function destroy(OrdenTecnica $orden): RedirectResponse
-    {
-        // Podrías bloquear con authorize('delete',$orden)
-        $orden->delete();
-        return back()->with('success','Orden eliminada');
+            ->with('success', "Orden #{$orden->id_orden} actualizada a “{$data['estado']}”.");
     }
 }

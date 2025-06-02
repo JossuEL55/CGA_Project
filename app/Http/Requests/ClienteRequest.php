@@ -16,9 +16,7 @@ class ClienteRequest extends FormRequest
     {
         return [
             'nombre' => ['required','string','max:100'],
-            // Si no usas razon_social ni direccion, retíralos:
-            // 'razon_social' => ['nullable','string','max:255'],
-            // 'direccion'    => ['nullable','string','max:500'],
+    
             'telefono' => ['nullable','string','max:20'],
             'correo'   => [
                 'nullable',

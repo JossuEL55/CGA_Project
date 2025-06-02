@@ -28,7 +28,7 @@ class RegisterController extends Controller
             'name'     => $request->input('name'),
             'email'    => $request->input('email'),
             'password' => Hash::make($request->input('password')),
-            'rol'      => $request->input('role'),  // Asegúrate de tener este campo en la tabla
+            'rol'      => $request->input('role'), 
         ]);
 
         // 2) Si el rol escogido es “tecnico”, creamos un registro en tabla ‘tecnicos’
@@ -41,13 +41,13 @@ class RegisterController extends Controller
             ]);
         }
 
-        // 3) Disparamos el evento Registered (para enviar email de verificación, etc.)
+
         event(new Registered($user));
 
-        // 4) Opcional: auto-login después de registrarse
+
         auth()->login($user);
 
-        // 5) Redirigir a dashboard o a donde quieras
+
         return redirect()->route('dashboard');
     }
 }

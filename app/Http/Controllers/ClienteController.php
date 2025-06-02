@@ -12,8 +12,7 @@ class ClienteController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        // → si luego quieres restringir solo a admins, podrías agregar:
-        // $this->middleware(['auth','role:admin']);
+
     }
 
     /**
