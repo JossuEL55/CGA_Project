@@ -63,3 +63,4 @@ Route::middleware('auth')->group(function () {
 // Carga rutas de autenticación predeterminadas (login, register, etc.)
 require __DIR__ . '/auth.php';
 
+
