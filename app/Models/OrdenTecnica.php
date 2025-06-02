@@ -4,13 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrdenTecnica extends Model
 {
     use HasFactory;
 
-    protected $table = 'ordenes_tecnicas';
+    protected $table = 'ordenes_tecnicas'; // nombre real de la tabla
     protected $primaryKey = 'id_orden';
     public $incrementing = true;
     protected $keyType = 'int';
@@ -26,23 +25,22 @@ class OrdenTecnica extends Model
         'supervisor_id',
     ];
 
-    public function planta(): BelongsTo
-    {
-        return $this->belongsTo(Planta::class, 'id_planta', 'id_planta');
-    }
-
-    public function tecnico(): BelongsTo
+    public function tecnico()
     {
         return $this->belongsTo(Tecnico::class, 'id_tecnico', 'id_tecnico');
     }
 
-    public function supervisor(): BelongsTo
+    public function supervisor()
     {
         return $this->belongsTo(Tecnico::class, 'supervisor_id', 'id_tecnico');
     }
+<<<<<<< HEAD
 public function validaciones(){
     return $this->hasMany(Validacion::class, 'id_orden', 'id_orden');
 }
     
 
 }
+=======
+}
+>>>>>>> origin/develop2

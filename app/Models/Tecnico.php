@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Permission\Traits\HasRoles;
 
 class Tecnico extends Model
 {
-    use HasFactory;
+    use HasFactory, HasRoles;
+    protected $guard_name = 'web'; // <- Añadir esta línea
 
     protected $table = 'tecnicos';
     protected $primaryKey = 'id_tecnico';
@@ -24,9 +26,9 @@ class Tecnico extends Model
 
     // En migración definimos: nombre, cedula, especialidad
     protected $fillable = [
-        'nombre',
-        'cedula',
-        'especialidad',
+        'name',
+        'email',
+        'password',
     ];
 
     /**
