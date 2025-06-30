@@ -15,11 +15,11 @@ Para garantizar un código **limpio, escalable y mantenible**, se aplicaron prin
 
 1. **Single Responsibility Principle (SRP):**
    - Cada clase tiene una única responsabilidad.
-   - La lógica de negocio se separó en una capa de servicio (`OrdenTecnicaService`).
+   - La lógica de negocio se separó en una capa de servicio (OrdenTecnicaService).
 
 2. **Dependency Inversion Principle (DIP):**
    - Los controladores dependen de interfaces y no directamente de implementaciones concretas de acceso a datos.
-   - Se inyecta el repositorio mediante una interfaz (`OrdenTecnicaRepositoryInterface`).
+   - Se inyecta el repositorio mediante una interfaz (OrdenTecnicaRepositoryInterface).
 
 ---
 
