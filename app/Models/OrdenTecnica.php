@@ -11,6 +11,7 @@ class OrdenTecnica extends Model
 
     protected $table = 'ordenes_tecnicas';
     protected $primaryKey = 'id_orden';
+        public $timestamps = true; 
 
     // Solo los campos que realmente existen en la tabla
     protected $fillable = [
