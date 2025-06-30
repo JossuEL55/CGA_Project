@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libzip-dev \
     libpq-dev \
- && docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath gd zip
+    && docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath gd zip
 
 # 3. Copia Composer desde la imagen oficial
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -32,7 +32,7 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
 # 7. Ajusta permisos de carpetas que Laravel necesita modificar en tiempo de ejecución
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
- && chmod -R 755 /var/www/storage /var/www/bootstrap/cache
+    && chmod -R 755 /var/www/storage /var/www/bootstrap/cache
 
 # 8. Expone el puerto 8000 (éste es el puerto en el que php artisan serve escuchará)
 EXPOSE 8000
@@ -48,6 +48,5 @@ EXPOSE 8000
 #    en tu proyecto local y ese archivo está versionado en Git, entonces basta con `php artisan migrate --force`.
 #    Mantengo el primer paso (`session:table`) solo en caso de que a futuro falte la migración.
 #
-CMD php artisan session:table \
-    && php artisan migrate --force \
+CMD php artisan migrate --force \
     && php artisan serve --host=0.0.0.0 --port=8000
